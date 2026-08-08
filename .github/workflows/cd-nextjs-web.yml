@@ -35,7 +35,7 @@ jobs:
         working-directory: ./web/nextjs
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Instructions: https://github.com/google-github-actions/auth?tab=readme-ov-file#direct-wif
       - name: Google Auth
