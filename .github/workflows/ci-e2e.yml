@@ -17,12 +17,12 @@ concurrency:
 
 jobs:
   build:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@v2.2.0
         with:
           bun-version: 1.3.11
       - name: Lint, format, typecheck (automation-testing)
@@ -34,16 +34,17 @@ jobs:
           bun run typecheck
   e2e:
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@v2.2.0
         with:
           bun-version: 1.3.11
 
       - name: Mount automation-testing node_modules (stickydisk)
-        uses: useblacksmith/stickydisk@v1
+        uses: useblacksmith/stickydisk@v1.4.0
         with:
           key: ${{ runner.os }}-counsel-studio-e2e-bun-${{ hashFiles('automation-testing/bun.lock') }}
           path: automation-testing/node_modules
@@ -53,7 +54,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Fetch secrets from Doppler
-        uses: dopplerhq/secrets-fetch-action@v1.3.1
+        uses: dopplerhq/secrets-fetch-action@v2.0.0
         with:
           doppler-token: ${{ secrets.DOPPLER_CI_TOKEN }}
           doppler-project: ${{ vars.DOPPLER_PROJECT }}
@@ -79,11 +80,14 @@ jobs:
           exit 1
 
       - name: Mount Playwright browsers cache (stickydisk)
-        uses: useblacksmith/stickydisk@v1
+        uses: useblacksmith/stickydisk@v1.4.0
         with:
           key: ${{ runner.os }}-counsel-studio-e2e-playwright-${{ hashFiles('automation-testing/package.json', 'automation-testing/bun.lock') }}
           path: ~/.cache/ms-playwright
 
+      # No --with-deps: blacksmith-4vcpu-ubuntu-2404 is based on GitHub's
+      # ubuntu-24.04 runner image, which ships Playwright's system libs
+      # pre-installed. Skipping apt-get avoids ~40s on every run.
       - name: Install Playwright Chromium
         working-directory: ./automation-testing
         run: bun run playwright:install:ci
@@ -98,27 +102,11 @@ jobs:
 
       - name: Upload Playwright report
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: playwright-report
           path: automation-testing/reports/html
           if-no-files-found: ignore
 
-  # delete-key values must match stickydisk@v1 key in the e2e job above
-  clean-up:
-    name: Clean-up
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    needs: [e2e]
-    if: always()
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Delete sticky disk for automation-testing node_modules
-        uses: useblacksmith/stickydisk-delete@v1
-        with:
-          delete-key: ${{ runner.os }}-counsel-studio-e2e-bun-${{ hashFiles('automation-testing/bun.lock') }}
-
-      - name: Delete sticky disk for Playwright browsers
-        uses: useblacksmith/stickydisk-delete@v1
-        with:
-          delete-key: ${{ runner.os }}-counsel-studio-e2e-playwright-${{ hashFiles('automation-testing/package.json', 'automation-testing/bun.lock') }}
+# Sticky disks are not deleted here. A per-run delete destroys the cache that the
+# run populated. Run the Purge CI Caches workflow to clear them by hand.

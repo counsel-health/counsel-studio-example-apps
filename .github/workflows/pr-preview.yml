@@ -35,10 +35,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v7.0.1
 
       - name: Detect changed services
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4.0.2
         id: filter
         with:
           filters: |
@@ -57,10 +57,10 @@ jobs:
           token_format: access_token
 
       - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v3
+        uses: google-github-actions/setup-gcloud@v3.0.1
 
       - name: Login to Google Artifact Registry
-        uses: docker/login-action@v4
+        uses: docker/login-action@v4.6.0
         with:
           registry: ${{ env.REGION }}-docker.pkg.dev
           username: _json_key
@@ -227,7 +227,7 @@ jobs:
           echo "nodejs_url=$NODEJS_URL" >> $GITHUB_OUTPUT
 
       - name: Update PR comment
-        uses: actions/github-script@v9
+        uses: actions/github-script@v9.0.0
         with:
           script: |
             const marker = '<!-- pr-preview -->';
@@ -276,7 +276,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Google Auth
         uses: google-github-actions/auth@v3
@@ -284,7 +284,7 @@ jobs:
           credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS }}
 
       - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v3
+        uses: google-github-actions/setup-gcloud@v3.0.1
 
       - name: Delete preview services
         run: |
