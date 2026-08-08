@@ -4,8 +4,8 @@ import React from "react";
 import { fontBody } from "./fonts";
 
 export const metadata: Metadata = {
-  title: "Embedded Corp Wellness",
-  description: "Embedded Corp Wellness",
+  title: "Studio Demo",
+  description: "Studio Demo",
 };
 
 export default function RootLayout({

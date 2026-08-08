@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "@counsel/embedded-automation-testing",
+      "name": "@counsel/studio-automation-testing",
       "devDependencies": {
         "@playwright/test": "^1.49.0",
         "@types/node": "^22.0.0",

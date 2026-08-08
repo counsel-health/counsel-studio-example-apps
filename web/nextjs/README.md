@@ -1,4 +1,4 @@
-[Next.js](https://nextjs.org) demo app for the Counsel Embedded Product.
+[Next.js](https://nextjs.org) demo app for the Counsel Studio Product.
 
 ## Getting Started
 
@@ -16,7 +16,7 @@ bun run dev
 
 Open [http://localhost:3001](http://localhost:3001) to see the demo app.
 
-Or see the live demo at [https://embedded-demo.counselhealth.com](https://embedded-demo.counselhealth.com).
+Or see the live demo at [https://studio-demo.counselhealth.com](https://studio-demo.counselhealth.com).
 Reach out to a member of the Counsel Health team to get an access code.
 
 ## Secret Management
@@ -58,7 +58,7 @@ The web app is deployed to Cloud Run using the `cd-nextjs-web.yml` workflow in t
 The workflow builds the Docker image and pushes it to Google Artifact Registry.
 It then deploys the container image to Cloud Run.
 
-Route53 hosts the subdomain at `embedded-demo.counselhealth.com` and routes requests to the Cloud Run service.
+Route53 hosts the subdomain at `studio-demo.counselhealth.com` and routes requests to the Cloud Run service.
 
 ### To deploy manually, you can use the following commands:
 

@@ -1,5 +1,5 @@
 {
-  "name": "@counsel/embedded-automation-testing",
+  "name": "@counsel/studio-automation-testing",
   "version": "0.1.0",
   "private": true,
   "scripts": {

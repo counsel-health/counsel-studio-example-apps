@@ -23,7 +23,7 @@ type SendOptions = {
 
 /**
  * Returns stable send-helpers for communicating with the Counsel iframe
- * via postMessage. Add new methods here as the Counsel embedded message
+ * via postMessage. Add new methods here as the Counsel Studio message
  * interface expands.
  *
  * `iframeOrigin` is passed to `postMessage` as the `targetOrigin` argument so

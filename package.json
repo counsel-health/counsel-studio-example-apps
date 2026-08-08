@@ -1,5 +1,5 @@
 {
-  "name": "counsel-embedded-example-apps",
+  "name": "counsel-studio-example-apps",
   "private": true,
   "scripts": {
     "prepare": "husky",
