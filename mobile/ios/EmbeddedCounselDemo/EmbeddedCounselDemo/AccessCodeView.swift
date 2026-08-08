@@ -16,7 +16,7 @@ struct AccessCodeView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Embedded Corp Demo App")
+            Text("Studio Demo")
                 .font(.system(.largeTitle, weight: .bold))
                 .foregroundStyle(.brandMidGreen)
             Text("Ask the Counsel Team for an access code to play with the demo")

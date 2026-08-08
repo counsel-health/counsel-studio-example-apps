@@ -56,7 +56,7 @@ export default function Header({ userAgent }: HeaderProps) {
     <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div className="p-4 flex items-center justify-between">
         <h1 className="text-xl font-bold text-primary">
-          Embedded Corp Wellness
+          Studio Demo
         </h1>
         {/* Desktop Navigation */}
         {!isMobile && (

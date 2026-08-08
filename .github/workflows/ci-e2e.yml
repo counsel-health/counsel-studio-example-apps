@@ -45,7 +45,7 @@ jobs:
       - name: Mount automation-testing node_modules (stickydisk)
         uses: useblacksmith/stickydisk@v1
         with:
-          key: ${{ runner.os }}-counsel-embedded-e2e-bun-${{ hashFiles('automation-testing/bun.lock') }}
+          key: ${{ runner.os }}-counsel-studio-e2e-bun-${{ hashFiles('automation-testing/bun.lock') }}
           path: automation-testing/node_modules
 
       - name: Install automation-testing dependencies
@@ -81,7 +81,7 @@ jobs:
       - name: Mount Playwright browsers cache (stickydisk)
         uses: useblacksmith/stickydisk@v1
         with:
-          key: ${{ runner.os }}-counsel-embedded-e2e-playwright-${{ hashFiles('automation-testing/package.json', 'automation-testing/bun.lock') }}
+          key: ${{ runner.os }}-counsel-studio-e2e-playwright-${{ hashFiles('automation-testing/package.json', 'automation-testing/bun.lock') }}
           path: ~/.cache/ms-playwright
 
       - name: Install Playwright Chromium
@@ -116,9 +116,9 @@ jobs:
       - name: Delete sticky disk for automation-testing node_modules
         uses: useblacksmith/stickydisk-delete@v1
         with:
-          delete-key: ${{ runner.os }}-counsel-embedded-e2e-bun-${{ hashFiles('automation-testing/bun.lock') }}
+          delete-key: ${{ runner.os }}-counsel-studio-e2e-bun-${{ hashFiles('automation-testing/bun.lock') }}
 
       - name: Delete sticky disk for Playwright browsers
         uses: useblacksmith/stickydisk-delete@v1
         with:
-          delete-key: ${{ runner.os }}-counsel-embedded-e2e-playwright-${{ hashFiles('automation-testing/package.json', 'automation-testing/bun.lock') }}
+          delete-key: ${{ runner.os }}-counsel-studio-e2e-playwright-${{ hashFiles('automation-testing/package.json', 'automation-testing/bun.lock') }}

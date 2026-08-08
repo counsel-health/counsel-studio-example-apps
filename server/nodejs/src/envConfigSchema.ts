@@ -19,7 +19,7 @@ export const AccessCodeConfigSchema = z.object({
   // Required for Browser direct calls to the Counsel API.
   // If skipped, all requests will be proxied through the demo server.
   issuer: z.url().optional(),
-  // When "AI", demo user creation omits seeded phone (matches counsel embedded AI-mode orgs).
+  // When "AI", demo user creation omits seeded phone (matches counsel studio AI-mode orgs).
   appContextMode: z.enum(["AI", "Physician"]).optional(),
 });
 

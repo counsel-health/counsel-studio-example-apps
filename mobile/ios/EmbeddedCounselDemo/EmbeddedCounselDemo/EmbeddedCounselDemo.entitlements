@@ -4,7 +4,7 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:embedded-demo.counselhealth.com</string>
+		<string>applinks:studio-demo.counselhealth.com</string>
 		<string>applinks:jaisal.ngrok.dev?mode=developer</string>
 	</array>
 	<key>com.apple.security.app-sandbox</key>

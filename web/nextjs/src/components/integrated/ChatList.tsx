@@ -79,7 +79,7 @@ export default function ChatList({
         <div className="flex items-center gap-3">
           <Logo className="size-5 text-zinc-900 dark:text-zinc-100" />
           <span className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-            Embedded Demo
+            Studio Demo
           </span>
         </div>
         <div className="flex items-center gap-1">

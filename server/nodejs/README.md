@@ -68,7 +68,7 @@ The server will be available at http://localhost:4003
     "MAIN01": {
       "client": "embedded-counsel-1",
       "apiUrl": "https://test-api.counselhealth.com",
-      "issuer": "https://embedded-demo.counselhealth.com/main",
+      "issuer": "https://studio-demo.counselhealth.com/main",
       "userType": "main"
     },
     "APIK01": {
@@ -80,7 +80,7 @@ The server will be available at http://localhost:4003
     "ONBR01": {
       "client": "embedded-counsel-2",
       "apiUrl": "https://test-api.counselhealth.com",
-      "issuer": "https://embedded-demo.counselhealth.com/onboarding",
+      "issuer": "https://studio-demo.counselhealth.com/onboarding",
       "userType": "onboarding"
     }
   }

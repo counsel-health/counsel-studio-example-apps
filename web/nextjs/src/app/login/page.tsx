@@ -47,7 +47,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md bg-white shadow-sm border-[#e6e2cf]">
         <CardHeader className="space-y-1">
           <CardTitle className="font-heading text-3xl font-bold text-center text-primary">
-            Embedded Corp Demo App
+            Studio Demo
           </CardTitle>
           <CardDescription className="text-center text-brand-400">
             Ask the Counsel Team for an access code to play with the demo
