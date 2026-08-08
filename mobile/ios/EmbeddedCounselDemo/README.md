@@ -9,8 +9,8 @@
 2. **Clone the repo and open the project in Xcode**
 
 ```bash
-git clone https://github.com/counsel-health/counsel-embedded-example-apps.git
-cd counsel-embedded-example-apps/mobile
+git clone https://github.com/counsel-health/counsel-studio-example-apps.git
+cd counsel-studio-example-apps/mobile
 open EmbeddedCounselDemo.xcodeproj
 ```
 
