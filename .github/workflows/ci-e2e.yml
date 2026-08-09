@@ -1,8 +1,8 @@
 name: E2E
 on:
-  # build and e2e are required checks. A path filter here would skip the whole
-  # workflow and leave both pending forever, blocking the PR. The filter lives
-  # in the changes job below instead, so the checks always report.
+  # build-automation and e2e are required checks. A path filter here would skip
+  # the whole workflow and leave both pending forever, blocking the PR. The
+  # filter lives in the changes job below instead, so the checks always report.
   pull_request:
   # Only a push to main writes the sticky disks. Refer to the comment on the mount.
   push:
@@ -23,6 +23,7 @@ concurrency:
 
 jobs:
   changes:
+    name: changes-automation
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
       relevant: ${{ steps.filter.outputs.relevant }}
@@ -43,6 +44,7 @@ jobs:
               - '.github/workflows/ci-e2e.yml'
 
   build:
+    name: build-automation
     needs: changes
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
