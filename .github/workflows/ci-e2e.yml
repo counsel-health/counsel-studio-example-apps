@@ -1,14 +1,9 @@
 name: E2E
 on:
+  # build and e2e are required checks. A path filter here would skip the whole
+  # workflow and leave both pending forever, blocking the PR. The filter lives
+  # in the changes job below instead, so the checks always report.
   pull_request:
-    paths:
-      - "automation-testing/**"
-      - "web/nextjs/**"
-      - "server/nodejs/**"
-      - "docker-compose.yml"
-      - "start.sh"
-      - "doppler.yaml"
-      - ".github/workflows/ci-e2e.yml"
   # Only a push to main writes the sticky disks. Refer to the comment on the mount.
   push:
     branches: [main]
@@ -27,16 +22,39 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    outputs:
+      relevant: ${{ steps.filter.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: dorny/paths-filter@v4.0.2
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - 'automation-testing/**'
+              - 'web/nextjs/**'
+              - 'server/nodejs/**'
+              - 'docker-compose.yml'
+              - 'start.sh'
+              - 'doppler.yaml'
+              - '.github/workflows/ci-e2e.yml'
+
   build:
+    needs: changes
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v7.0.1
 
       - name: Setup Bun
+        if: needs.changes.outputs.relevant == 'true'
         uses: oven-sh/setup-bun@v2.2.0
         with:
           bun-version: 1.3.11
       - name: Lint, format, typecheck (automation-testing)
+        if: needs.changes.outputs.relevant == 'true'
         working-directory: ./automation-testing
         run: |
           bun install --frozen-lockfile
@@ -44,12 +62,14 @@ jobs:
           bun run format:check
           bun run typecheck
   e2e:
+    needs: changes
     runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7.0.1
 
       - name: Setup Bun
+        if: needs.changes.outputs.relevant == 'true'
         uses: oven-sh/setup-bun@v2.2.0
         with:
           bun-version: 1.3.11
@@ -58,6 +78,7 @@ jobs:
       # snapshot. This job injects Doppler secrets, so a disk that any fork PR
       # could write would be a code-execution path beside those secrets.
       - name: Mount automation-testing node_modules (stickydisk)
+        if: needs.changes.outputs.relevant == 'true'
         uses: useblacksmith/stickydisk@v1.4.0
         with:
           key: ${{ runner.os }}-counsel-studio-e2e-bun-${{ hashFiles('automation-testing/bun.lock') }}
@@ -65,10 +86,12 @@ jobs:
           commit: ${{ github.event_name == 'push' }}
 
       - name: Install automation-testing dependencies
+        if: needs.changes.outputs.relevant == 'true'
         working-directory: ./automation-testing
         run: bun install --frozen-lockfile
 
       - name: Fetch secrets from Doppler
+        if: needs.changes.outputs.relevant == 'true'
         uses: dopplerhq/secrets-fetch-action@v2.0.0
         with:
           doppler-token: ${{ secrets.DOPPLER_CI_TOKEN }}
@@ -77,9 +100,11 @@ jobs:
           inject-env-vars: true
 
       - name: Docker Compose up
+        if: needs.changes.outputs.relevant == 'true'
         run: docker compose up --build -d
 
       - name: Wait for web and API
+        if: needs.changes.outputs.relevant == 'true'
         run: |
           set -euo pipefail
           for _ in $(seq 1 90); do
@@ -95,6 +120,7 @@ jobs:
           exit 1
 
       - name: Mount Playwright browsers cache (stickydisk)
+        if: needs.changes.outputs.relevant == 'true'
         uses: useblacksmith/stickydisk@v1.4.0
         with:
           key: ${{ runner.os }}-counsel-studio-e2e-playwright-${{ hashFiles('automation-testing/package.json', 'automation-testing/bun.lock') }}
@@ -105,19 +131,21 @@ jobs:
       # ubuntu-24.04 runner image, which ships Playwright's system libs
       # pre-installed. Skipping apt-get avoids ~40s on every run.
       - name: Install Playwright Chromium
+        if: needs.changes.outputs.relevant == 'true'
         working-directory: ./automation-testing
         run: bun run playwright:install:ci
 
       - name: Run Playwright
+        if: needs.changes.outputs.relevant == 'true'
         working-directory: ./automation-testing
         run: bun run test:e2e:ci
 
       - name: Docker Compose down
-        if: always()
+        if: always() && needs.changes.outputs.relevant == 'true'
         run: docker compose down -v
 
       - name: Upload Playwright report
-        if: failure()
+        if: failure() && needs.changes.outputs.relevant == 'true'
         uses: actions/upload-artifact@v7.0.1
         with:
           name: playwright-report
