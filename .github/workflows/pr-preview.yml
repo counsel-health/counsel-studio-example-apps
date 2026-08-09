@@ -290,3 +290,12 @@ jobs:
         run: |
           gcloud run services delete ${{ env.NODEJS_SERVICE }} --region=${{ env.REGION }} --quiet || true
           gcloud run services delete ${{ env.NEXTJS_SERVICE }} --region=${{ env.REGION }} --quiet || true
+
+      # Deleting the service leaves its images behind. Without this the registry
+      # grows by one image repository per PR and never shrinks.
+      - name: Delete preview images
+        run: |
+          REGISTRY="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}"
+          for SERVICE in "${{ env.NODEJS_SERVICE }}" "${{ env.NEXTJS_SERVICE }}"; do
+            gcloud artifacts docker images delete "$REGISTRY/$SERVICE" --delete-tags --quiet || true
+          done
