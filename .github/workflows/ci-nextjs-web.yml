@@ -1,7 +1,7 @@
 name: Next.js Web App CI
 on:
   workflow_dispatch:
-  # build is a required check. A path filter here would skip the whole
+  # build-web is a required check. A path filter here would skip the whole
   # workflow and leave it pending forever, blocking the PR. The filter
   # lives in the changes job below instead, so the check always reports.
   pull_request:
@@ -15,6 +15,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   changes:
+    name: changes-web
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
       relevant: ${{ steps.filter.outputs.relevant }}
@@ -29,6 +30,7 @@ jobs:
               - 'web/nextjs/**'
 
   build:
+    name: build-web
     needs: changes
     runs-on: blacksmith-4vcpu-ubuntu-2404
     defaults:

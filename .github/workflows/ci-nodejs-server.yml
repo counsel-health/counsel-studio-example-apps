@@ -1,6 +1,6 @@
 name: Node.js Server CI
 on:
-  # build is a required check. A path filter here would skip the whole
+  # build-server is a required check. A path filter here would skip the whole
   # workflow and leave it pending forever, blocking the PR. The filter
   # lives in the changes job below instead, so the check always reports.
   pull_request:
@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   changes:
+    name: changes-server
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
       relevant: ${{ steps.filter.outputs.relevant }}
@@ -30,6 +31,7 @@ jobs:
               - 'server/nodejs/**'
 
   build:
+    name: build-server
     needs: changes
     runs-on: blacksmith-2vcpu-ubuntu-2404
     defaults:

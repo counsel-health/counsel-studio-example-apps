@@ -1,7 +1,7 @@
 name: Android
 
 on:
-  # build is a required check. A path filter here would skip the whole
+  # build-android is a required check. A path filter here would skip the whole
   # workflow and leave it pending forever, blocking the PR. The filter
   # lives in the changes job below instead, so the check always reports.
   pull_request:
@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   changes:
+    name: changes-android
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
       relevant: ${{ steps.filter.outputs.relevant }}
@@ -32,6 +33,7 @@ jobs:
               - '.github/workflows/android.yml'
 
   build:
+    name: build-android
     needs: changes
     runs-on: blacksmith-8vcpu-ubuntu-2404
     defaults:
