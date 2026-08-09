@@ -1,0 +1,76 @@
+# Manual purge for the sticky disks that CI mounts.
+#
+# CI must never delete a sticky disk at the end of a run. A per-run delete throws
+# away the cache that the run just populated. Run this workflow by hand when a
+# cache is corrupt or stale.
+#
+# The delete-key values must match the stickydisk keys in ci-e2e.yml,
+# ci-nextjs-web.yml, and ci-nodejs-server.yml.
+
+name: Purge CI Caches
+
+on:
+  workflow_dispatch:
+    inputs:
+      e2e_node_modules:
+        description: "Delete the automation-testing node_modules sticky disk"
+        type: boolean
+        default: true
+      e2e_playwright:
+        description: "Delete the Playwright browsers sticky disk"
+        type: boolean
+        default: true
+      web_node_modules:
+        description: "Delete the web/nextjs node_modules sticky disk"
+        type: boolean
+        default: true
+      web_next_build:
+        description: "Delete the Next.js build cache sticky disk"
+        type: boolean
+        default: true
+      server_node_modules:
+        description: "Delete the server/nodejs node_modules sticky disk"
+        type: boolean
+        default: true
+
+jobs:
+  purge:
+    name: Purge Caches
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Delete automation-testing node_modules sticky disk
+        if: ${{ inputs.e2e_node_modules }}
+        uses: useblacksmith/stickydisk-delete@v1
+        continue-on-error: true
+        with:
+          delete-key: ${{ runner.os }}-counsel-studio-e2e-bun-${{ hashFiles('automation-testing/bun.lock') }}
+
+      - name: Delete Playwright browsers sticky disk
+        if: ${{ inputs.e2e_playwright }}
+        uses: useblacksmith/stickydisk-delete@v1
+        continue-on-error: true
+        with:
+          delete-key: ${{ runner.os }}-counsel-studio-e2e-playwright-${{ hashFiles('automation-testing/package.json', 'automation-testing/bun.lock') }}
+
+      - name: Delete web/nextjs node_modules sticky disk
+        if: ${{ inputs.web_node_modules }}
+        uses: useblacksmith/stickydisk-delete@v1
+        continue-on-error: true
+        with:
+          delete-key: ${{ runner.os }}-counsel-studio-web-bun-${{ hashFiles('web/nextjs/bun.lock') }}
+
+      - name: Delete Next.js build cache sticky disk
+        if: ${{ inputs.web_next_build }}
+        uses: useblacksmith/stickydisk-delete@v1
+        continue-on-error: true
+        with:
+          delete-key: ${{ runner.os }}-counsel-studio-web-next-${{ hashFiles('web/nextjs/bun.lock') }}
+
+      - name: Delete server/nodejs node_modules sticky disk
+        if: ${{ inputs.server_node_modules }}
+        uses: useblacksmith/stickydisk-delete@v1
+        continue-on-error: true
+        with:
+          delete-key: ${{ runner.os }}-counsel-studio-server-bun-${{ hashFiles('server/nodejs/bun.lock') }}

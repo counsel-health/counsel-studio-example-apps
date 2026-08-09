@@ -35,7 +35,7 @@ jobs:
         working-directory: ./web/nextjs
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
 
       # Instructions: https://github.com/google-github-actions/auth?tab=readme-ov-file#direct-wif
       - name: Google Auth
@@ -46,7 +46,7 @@ jobs:
           token_format: "access_token"
 
       - name: Login to Google Artifact Registry (GAR)
-        uses: docker/login-action@v4
+        uses: docker/login-action@v4.6.0
         with:
           registry: ${{ env.REGION }}-docker.pkg.dev
           username: _json_key
