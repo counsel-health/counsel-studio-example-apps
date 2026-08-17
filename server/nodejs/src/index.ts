@@ -6,7 +6,7 @@ import { serverLogger } from "@/lib/logger";
 loadEnvConfig();
 
 app.listen(env.PORT, () => {
-  // Seed the in-memory database
+  // Create the in-memory database
   getDb()
     .then(() => {
       serverLogger.info("Database initialized");
