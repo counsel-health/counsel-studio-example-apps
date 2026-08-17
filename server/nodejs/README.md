@@ -97,12 +97,7 @@ The server will be available at http://localhost:4003
 
 The database is a simple SQLite database that is created in memory.
 
-## Seeds
-
-The database is seeded with a user when the server is started. We currently create a single demo user with the following details:
-
-- ID: 1
-- Name: John Doe
+The server creates no user at startup. A demo user is created on demand when a request hits `POST /user/signUp` or `POST /user/signedAppUrl`.
 
 ## Deploying to Cloud Run
 

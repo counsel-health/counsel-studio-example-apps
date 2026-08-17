@@ -1,4 +1,3 @@
-import { Database } from "bun:sqlite";
 import { createCounselDraftUser, createCounselUser } from "@/lib/counsel";
 import { getAccessCodeConfig } from "@/envConfig";
 import { getDb } from "../db";
@@ -31,14 +30,12 @@ export async function createUser({
   userId,
   accessCode,
   userType,
-  dbProvider,
 }: {
   userId: string;
   accessCode: string;
   userType: "main" | "onboarding";
-  dbProvider?: Database;
 }) {
-  const db = dbProvider ?? (await getDb());
+  const db = await getDb();
   const config = getAccessCodeConfig(accessCode);
   const includePhone = config?.appContextMode !== "AI";
   const newUser = demoUser(userId, includePhone);
