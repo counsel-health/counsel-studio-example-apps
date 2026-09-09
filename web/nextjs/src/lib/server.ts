@@ -89,6 +89,8 @@ export async function prewarmSessionJwt(session: IronSession<SessionData>): Prom
  *
  * Always proxied through the demo server (demo server calls Counsel with the access code API key).
  * Issuer/JWT browser-direct traffic uses session.counselJwt from {@link getValidCounselJwt}, not this helper.
+ *
+ * The url is cached per user, so passing sessionData that differs per request needs its own cache tag.
  */
 export async function getCounselSignedAppUrl(
   session: IronSession<SessionData>,
