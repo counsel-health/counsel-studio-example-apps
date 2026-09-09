@@ -7,8 +7,7 @@ import type { User } from "@/lib/user-session";
 import { getAccessCodeConfig } from "@/envConfig";
 import { z } from "zod";
 
-// Optional session data forwarded as-is to the Counsel signed app URL request.
-// Accepts any JSON object; unknown values pass through to Counsel unchanged.
+// Optional session data (`action`, `view`, `metadata`, `agent_context`) passed through to Counsel unchanged. See the README.
 export const SessionDataSchema = z.record(z.string(), z.unknown());
 
 export const SignedAppUrlResponseSchema = z.object({ url: z.string() });
