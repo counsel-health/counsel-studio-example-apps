@@ -53,7 +53,43 @@ The server will be available at http://localhost:4003
 - `POST /user/signUp`: Sign up a new user using an access code and returns a JWT session
 - `POST /user/signOut`: Sign out a user (requires a valid JWT session passed in the Authorization header)
 - `POST /user/signedAppUrl`: Gets the signed app url for the user (requires a valid JWT session passed in the Authorization header)
+- `GET /user/threads`: Lists the user's Counsel threads (requires a valid JWT session passed in the Authorization header)
+- `POST /user/threads`: Creates a Counsel thread (requires a valid JWT session passed in the Authorization header)
 - `POST /onCounselWebhook`: Handles Counsel webhooks (requires a valid API key passed in the Authorization header)
+
+## Session Data
+
+The request body of `POST /user/signedAppUrl` is forwarded to Counsel unchanged. It tells the Counsel
+app what to render once the signed url is opened, and has four independent parts: `action`, `view`,
+`metadata`, and `agent_context`. Note that `agent_context` is a sibling of `action`, not a field
+inside it.
+
+`start_thread` is the action to use when your app is sending a user into a conversation. What it does to the user's threads depends on whether you seed it:
+
+- **Without `initial_messages`** the session opens an empty conversation, and Counsel may hand back a thread the user never replied to rather than starting another one.
+- **With `initial_messages`** a new thread always starts, seeded with those messages, and the user lands directly in the conversation.
+
+```json
+{
+  "action": {
+    "action": "start_thread",
+    "module": "get_care",
+    "initial_messages": [
+      { "body": "I've had a sore throat and a fever for two days.", "role": "patient" },
+      { "body": "Connecting you to Counsel now.", "role": "model" }
+    ],
+    "metadata": { "external_session_id": "abc123" }
+  },
+  "agent_context": { "reason_for_handoff": "Symptoms not improving after 48 hours" },
+  "view": { "navigation": "integrated", "theme": "light" }
+}
+```
+
+`initial_messages` are rendered in the thread; `agent_context` is passed to the AI but not shown;
+`metadata` is persisted on the thread when it is created, so you can correlate it with your records.
+
+The other actions are `open_thread` (`thread_id`), `open_page` (`page`), and `create_thread`, which
+takes the same fields as `start_thread`. Prefer `start_thread` in a new integration.
 
 ## Environment Variables
 

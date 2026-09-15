@@ -3,7 +3,14 @@
 import { usePathname } from "next/navigation";
 import { useMobile } from "@/hooks/useMobile";
 import { useState } from "react";
-import { Home, ShoppingBag, User, Menu, MessageCircle } from "lucide-react";
+import {
+  Home,
+  ShoppingBag,
+  User,
+  Menu,
+  MessageCircle,
+  FlaskConical,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -46,6 +53,11 @@ export default function Header({ userAgent }: HeaderProps) {
       label: "Chat with a doctor",
     },
     {
+      icon: <FlaskConical className="h-5 w-5" />,
+      href: "/dashboard/playground",
+      label: "Playground",
+    },
+    {
       icon: <User className="h-5 w-5" />,
       href: "/dashboard/account",
       label: "Account",
@@ -55,9 +67,7 @@ export default function Header({ userAgent }: HeaderProps) {
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div className="p-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-primary">
-          Studio Demo
-        </h1>
+        <h1 className="text-xl font-bold text-primary">Studio Demo</h1>
         {/* Desktop Navigation */}
         {!isMobile && (
           <nav>

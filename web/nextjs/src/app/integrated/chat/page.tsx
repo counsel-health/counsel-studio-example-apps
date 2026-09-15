@@ -17,6 +17,8 @@ export default async function IntegratedChat() {
         counselDirectApiBase: `${session.counselApiUrl}/v1/user`,
         counselJwt: counselJwt ?? "",
         counselUserId: session.counselUserId,
+        // The host app owns the chrome here, so every signed URL renders messages and input only.
+        baseSessionData: { view: { navigation: "integrated" } },
       }}
     />
   );
