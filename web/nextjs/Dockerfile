@@ -1,7 +1,7 @@
 # syntax=docker.io/docker/dockerfile:1
 # Bun for install/build (bun.lock); Node for serving the Next standalone output.
 
-FROM oven/bun:1.3.11 AS base
+FROM oven/bun:1.4.2 AS base
 
 FROM base AS deps
 WORKDIR /app
