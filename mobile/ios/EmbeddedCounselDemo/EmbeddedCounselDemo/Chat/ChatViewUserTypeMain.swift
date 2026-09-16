@@ -26,9 +26,9 @@ struct ChatViewUserTypeMain: View {
                         .zIndex(1)
                         .transition(.opacity)
                 } else if let chatUrl = chatUrl {
-                    VStack {
-                        WebView(url: chatUrl, showLoadingScreen: $isLoading, onClose: onClose).ignoresSafeArea(.keyboard)
-                    }
+                    WebView(url: chatUrl, showLoadingScreen: $isLoading, onClose: onClose)
+                        .ignoresSafeArea(.keyboard)
+                        .ignoresSafeArea(edges: .bottom)
                 }
                 if isLoading && !showOnboarding {
                     // Loading screen is default state if no chat URL is available or onboarding is not shown
@@ -38,7 +38,7 @@ struct ChatViewUserTypeMain: View {
                             .progressViewStyle(CircularProgressViewStyle(tint: .blue))
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(.systemBackground))
+                    .background(Color(red: 25.0 / 255.0, green: 25.0 / 255.0, blue: 28.0 / 255.0))
                     .zIndex(2)
                     .transition(.opacity)
                 }

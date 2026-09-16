@@ -23,7 +23,7 @@ struct HomeView: View {
             .padding(.horizontal)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .navigationTitle("Welcome back!")
-            .background(Color(.systemGray6).ignoresSafeArea())
+            .background(Color(red: 25.0 / 255.0, green: 25.0 / 255.0, blue: 28.0 / 255.0).ignoresSafeArea())
         }
     }
 }
