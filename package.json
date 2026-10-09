@@ -7,9 +7,9 @@
     "verify": "concurrently -n web,server,automation -c auto \"bun run --cwd web/nextjs verify\" \"bun run --cwd server/nodejs verify\" \"bun run --cwd automation-testing verify\""
   },
   "devDependencies": {
-    "concurrently": "^9.2.1",
+    "concurrently": "^9.2.5",
     "husky": "^9.1.7",
-    "lint-staged": "^15.4.3"
+    "lint-staged": "^17.6.0"
   },
   "packageManager": "bun@1.4.2"
 }
