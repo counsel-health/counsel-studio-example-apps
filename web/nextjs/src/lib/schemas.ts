@@ -21,13 +21,6 @@ export const ThreadListResponseSchema = z.object({
 
 export type ThreadItem = z.infer<typeof ThreadItemSchema>;
 
-export const CreateThreadResponseSchema = z.object({
-  thread_id: z.string(),
-  created_at: z.string(),
-});
-
-export type CreateThreadResponse = z.infer<typeof CreateThreadResponseSchema>;
-
 export const SignUpResponseSchema = z.object({
   token: z.string(),
   userType: z.enum(["main", "onboarding"]),

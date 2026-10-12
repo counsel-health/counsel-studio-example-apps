@@ -7,10 +7,10 @@ const accessCode =
   "AICHAT";
 
 test.describe("integrated chat - connect to care handoff", () => {
-  test("real Counsel API: signedAppUrl preloads on page load and Counsel iframe loads after handoff", async ({
+  test("real Counsel API: signedAppUrl preloads on page load and handoff loads a start_thread URL", async ({
     page,
   }) => {
-    // signedAppUrl is now preloaded on page load rather than during the handoff.
+    // signedAppUrl is preloaded on page load, before the handoff fetches its own.
     // Set up the listener before navigation so we don't miss it.
     const signedUrlResponsePromise = page.waitForResponse(
       (resp: Response) =>
@@ -51,22 +51,30 @@ test.describe("integrated chat - connect to care handoff", () => {
       page.getByRole("button", { name: "Connect to Counsel" })
     ).toBeVisible();
 
-    // During handoff POST /threads is called. signedAppUrl is re-fetched only
-    // if the preloaded iframe has not finished loading, because the token works once.
-    const createThreadResponsePromise = page.waitForResponse(
+    // start_thread needs a fresh one-time token, so the handoff fetches a new
+    // signed URL instead of reusing the preloaded one.
+    const handoffResponsePromise = page.waitForResponse(
       (resp: Response) =>
-        resp.url().includes("/threads") &&
+        resp.url().includes("/signedAppUrl") &&
         resp.request().method() === "POST" &&
-        resp.request().resourceType() === "fetch"
+        resp.request().postDataJSON()?.action?.action === "start_thread"
     );
 
     await page.getByRole("button", { name: "Connect to Counsel" }).click();
 
-    const threadResponse = await createThreadResponsePromise;
+    const handoffResponse = await handoffResponsePromise;
     expect(
-      threadResponse.ok(),
-      `POST /threads failed: ${threadResponse.status()}`
+      handoffResponse.ok(),
+      `start_thread signedAppUrl failed: ${handoffResponse.status()}`
     ).toBe(true);
+    const sessionData = handoffResponse.request().postDataJSON();
+    expect(sessionData.action.initial_messages).toContainEqual({
+      body: triggerText,
+      role: "patient",
+    });
+    expect(sessionData.agent_context).toEqual({
+      reason_for_handoff: triggerText,
+    });
 
     await expect(
       page.getByRole("button", { name: /Counsel chat/ })
@@ -74,11 +82,7 @@ test.describe("integrated chat - connect to care handoff", () => {
 
     const iframe = page.getByTitle("Counsel App");
     await expect(iframe).toBeVisible({ timeout: 30_000 });
-    const src = await iframe.getAttribute("src");
-    expect(src).toBeTruthy();
-    expect(src).toMatch(/^https?:\/\//);
-    // The signed URL (preloaded or fresh) gets ?threadId= appended so the
-    // Counsel app opens directly into the new thread.
-    expect(src).toContain("threadId=");
+    const { url: handoffUrl } = await handoffResponse.json();
+    expect(await iframe.getAttribute("src")).toBe(handoffUrl);
   });
 });

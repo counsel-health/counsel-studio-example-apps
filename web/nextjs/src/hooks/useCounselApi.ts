@@ -1,4 +1,4 @@
-import type { CreateThreadResponse, ThreadItem } from "@/lib/schemas";
+import type { ThreadItem } from "@/lib/schemas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { counselQueryKeys } from "./counselQueryKeys";
@@ -27,15 +27,26 @@ type SignedUrlAction =
       action: "create_thread";
       initial_messages?: InitialMessage[];
       agent_context?: Record<string, unknown>;
+    }
+  | {
+      action: "start_thread";
+      module?: string;
+      initial_messages?: InitialMessage[];
+      metadata?: Record<string, unknown>;
+      agent_context?: Record<string, unknown>;
     };
 
 // ---------------------------------------------------------------------------
 // Raw fetch helpers
 // ---------------------------------------------------------------------------
 
-async function fetchThreadsFromServer(config: CounselApiConfig): Promise<ThreadItem[]> {
+async function fetchThreadsFromServer(
+  config: CounselApiConfig
+): Promise<ThreadItem[]> {
   const direct = config.counselJwt.length > 0;
-  const url = direct ? `${config.counselDirectApiBase}/threads` : "/api/counsel/threads";
+  const url = direct
+    ? `${config.counselDirectApiBase}/threads`
+    : "/api/counsel/threads";
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "Idempotency-Key": crypto.randomUUID(),
@@ -57,9 +68,11 @@ async function fetchThreadsFromServer(config: CounselApiConfig): Promise<ThreadI
 
 async function fetchSignedUrlFromServer(
   config: CounselApiConfig,
-  action?: SignedUrlAction,
+  action?: SignedUrlAction
 ): Promise<string> {
-  const sessionData: Record<string, unknown> = { view: { navigation: "integrated" } };
+  const sessionData: Record<string, unknown> = {
+    view: { navigation: "integrated" },
+  };
   if (action) {
     // Counsel signedAppUrl expects a single `action` object. For create_thread,
     // initial_messages and agent_context must live on that object (not on sessionData).
@@ -69,6 +82,11 @@ async function fetchSignedUrlFromServer(
         initial_messages: action.initial_messages,
         agent_context: action.agent_context,
       };
+    } else if (action.action === "start_thread") {
+      // start_thread has no agent_context field; Counsel reads it from sessionData.
+      const { agent_context, ...startThread } = action;
+      sessionData.action = startThread;
+      if (agent_context) sessionData.agent_context = agent_context;
     } else {
       sessionData.action = action;
     }
@@ -99,41 +117,6 @@ async function fetchSignedUrlFromServer(
 }
 
 // ---------------------------------------------------------------------------
-// Create thread
-// ---------------------------------------------------------------------------
-
-export type CreateThreadParams = {
-  module?: string;
-  initial_messages?: InitialMessage[];
-  agent_context?: Record<string, unknown>;
-};
-
-async function createThreadOnServer(
-  config: CounselApiConfig,
-  params: CreateThreadParams,
-): Promise<CreateThreadResponse> {
-  const direct = config.counselJwt.length > 0;
-  const url = direct ? `${config.counselDirectApiBase}/threads` : "/api/counsel/threads";
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Idempotency-Key": crypto.randomUUID(),
-  };
-  if (direct) {
-    headers.Authorization = `Bearer ${config.counselJwt}`;
-  }
-  const resp = await fetch(url, {
-    method: "POST",
-    headers,
-    credentials: direct ? "omit" : "include",
-    body: JSON.stringify(params),
-  });
-  if (!resp.ok) {
-    throw new Error(`Failed to create thread: ${resp.status}`);
-  }
-  return resp.json();
-}
-
-// ---------------------------------------------------------------------------
 // Hooks
 // ---------------------------------------------------------------------------
 
@@ -157,9 +140,21 @@ export function useCounselThreads(config: CounselApiConfig) {
 
   const addThread = useCallback(
     (thread: ThreadItem) => {
-      queryClient.setQueryData<ThreadItem[]>(queryKey, (old = []) => [thread, ...old]);
+      queryClient.setQueryData<ThreadItem[]>(queryKey, (old = []) => [
+        thread,
+        ...old,
+      ]);
     },
-    [queryClient, queryKey],
+    [queryClient, queryKey]
+  );
+
+  const replaceThread = useCallback(
+    (id: string, thread: ThreadItem) => {
+      queryClient.setQueryData<ThreadItem[]>(queryKey, (old = []) =>
+        old.map((t) => (t.id === id ? thread : t))
+      );
+    },
+    [queryClient, queryKey]
   );
 
   /** Marks the threads query stale and triggers a background refetch. */
@@ -167,7 +162,14 @@ export function useCounselThreads(config: CounselApiConfig) {
     return queryClient.invalidateQueries({ queryKey });
   }, [queryClient, queryKey]);
 
-  return { threads, isLoading, error, addThread, invalidateThreads };
+  return {
+    threads,
+    isLoading,
+    error,
+    addThread,
+    replaceThread,
+    invalidateThreads,
+  };
 }
 
 /**
@@ -176,23 +178,11 @@ export function useCounselThreads(config: CounselApiConfig) {
  */
 export function useCounselSignedUrl(config: CounselApiConfig) {
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (action?: SignedUrlAction) => fetchSignedUrlFromServer(config, action),
+    mutationFn: (action?: SignedUrlAction) =>
+      fetchSignedUrlFromServer(config, action),
   });
 
   return { getSignedUrl: mutateAsync, isPending };
-}
-
-/**
- * Returns a `createThread` function that creates a thread via the Counsel API,
- * then returns the thread_id. Use this before calling `getSignedUrl` with
- * `open_thread` to load the iframe faster.
- */
-export function useCounselCreateThread(config: CounselApiConfig) {
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (params: CreateThreadParams) => createThreadOnServer(config, params),
-  });
-
-  return { createThread: mutateAsync, isPending };
 }
 
 /**

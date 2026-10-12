@@ -12,7 +12,6 @@ export type CounselAppClientProps = {
    * Must be a real Counsel thread UUID — not a client-side placeholder ID.
    */
   currentThreadId?: string;
-  onLoad?: () => void;
 };
 
 /**
@@ -23,7 +22,6 @@ export default function CounselAppClient({
   signedAppUrl,
   className,
   currentThreadId,
-  onLoad,
 }: CounselAppClientProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isFirstRender = useRef(true);
@@ -55,7 +53,6 @@ export default function CounselAppClient({
       ref={iframeRef}
       title="Counsel App"
       src={signedAppUrl}
-      onLoad={onLoad}
       className={className}
       sandbox="allow-storage-access-by-user-activation allow-same-origin allow-scripts allow-forms allow-downloads allow-popups"
       allow="clipboard-read; clipboard-write"
