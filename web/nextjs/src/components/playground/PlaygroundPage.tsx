@@ -50,7 +50,7 @@ export default function PlaygroundPage({
   const [signedAppUrl, setSignedAppUrl] = useState<string | null>(null);
   const [isAppReady, setIsAppReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // The body behind the current preview, so a retry relaunches what was sent rather than later form edits.
+  // Last launched body, so Retry resends it even if the form changed since.
   const lastLaunchRef = useRef<CounselSessionData | null>(null);
 
   const splitRef = useRef<HTMLDivElement>(null);
@@ -78,8 +78,7 @@ export default function PlaygroundPage({
     },
   });
 
-  // `counsel:ready` is the only signal the app rendered, so there is deliberately no timeout: if it never fires that's a bug,
-  // and a spinner that stays up shows it. "Relaunch session" stays enabled while loading, so it's always recoverable.
+  // No timeout on purpose: a missing `counsel:ready` is a bug, and Relaunch still works while loading.
   const isPreviewLoading = isPending || (signedAppUrl !== null && !isAppReady);
 
   async function launch(body: CounselSessionData) {
@@ -97,7 +96,7 @@ export default function PlaygroundPage({
     }
   }
 
-  /** Signed urls are single use, so a retry always mints a new one. */
+  /** Mints a fresh url, since signed urls are single use. */
   function retry() {
     void launch(lastLaunchRef.current ?? sessionData);
   }
@@ -202,7 +201,7 @@ export default function PlaygroundPage({
         onPointerUp={(event) => {
           event.currentTarget.releasePointerCapture(event.pointerId);
         }}
-        // Fires after pointerup and also when the gesture is cancelled, so the drag can't get stuck on.
+        // Also fires when a drag is cancelled, so resizing never gets stuck on.
         onLostPointerCapture={() => setIsResizing(false)}
         className={cn(
           "hidden w-1.5 shrink-0 cursor-col-resize bg-border outline-none transition-colors hover:bg-foreground/20 focus-visible:bg-foreground/20 lg:block",

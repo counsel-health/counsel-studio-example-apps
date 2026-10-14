@@ -227,7 +227,7 @@ export default function SessionForm({
               },
               ...threads.map((thread) => ({
                 value: thread.id,
-                // Untitled threads all share a fallback name, so the last activity tells them apart.
+                // Untitled threads share a name, so the time tells them apart.
                 label: `${thread.display_name || "Counsel chat"} · ${formatThreadActivity(thread.last_activity_time)}`,
               })),
             ]}

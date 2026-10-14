@@ -4,7 +4,7 @@ import { getCounselSignedAppUrl } from "@/lib/server";
 import { getSession } from "@/lib/session";
 
 /**
- * Chat page renders the Counsel app inside an iframe (standalone pattern). The full Counsel experience with built-in sidebar. The signed url is minted on the server the way your backend would, and cached so repeat loads don't flash the iframe. It opens with `start_thread`, so the user lands in a conversation rather than wherever Counsel would otherwise choose.
+ * Standalone Counsel chat in an iframe, opening straight into a conversation with `start_thread`.
  */
 export default async function Chat() {
   const session = await getSession();

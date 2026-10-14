@@ -30,10 +30,7 @@ export type CounselApiConfig = {
 // Raw fetch helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Calls a Counsel user endpoint: directly with the JWT when there is one, otherwise through the
- * same-origin `/api/counsel/…` proxy with session cookies. Throws with the API's own message on failure.
- */
+/** Calls Counsel directly with the JWT, or via the `/api/counsel` proxy without one. */
 async function counselFetch(
   config: CounselApiConfig,
   path: string,
@@ -73,10 +70,7 @@ function safeJsonParse(text: string): unknown {
   }
 }
 
-/**
- * Pulls the reason off a failed response, which is where a refusal says why — e.g. a module the
- * organization can't open. Counsel sends `{ message }`; the demo proxy routes send `{ error }`.
- */
+/** Gets the error reason from a failed response (`message` from Counsel, `error` from the proxy). */
 async function readErrorMessage(resp: Response): Promise<string> {
   const text = (await resp.text()).trim();
   if (!text) return resp.statusText;
