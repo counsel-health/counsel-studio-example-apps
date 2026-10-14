@@ -93,8 +93,7 @@ export async function prewarmSessionJwt(
  * Always proxied through the demo server (demo server calls Counsel with the access code API key).
  * Issuer/JWT browser-direct traffic uses session.counselJwt from {@link getValidCounselJwt}, not this helper.
  *
- * The fetch cache key includes the request body, so different sessionData never shares a cached url.
- * The per-user tag only controls invalidation: revalidating it drops every cached url for that user.
+ * Cached per request body; the per-user tag is only used to clear the cache.
  */
 export async function getCounselSignedAppUrl(
   session: IronSession<SessionData>,

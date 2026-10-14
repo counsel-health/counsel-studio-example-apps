@@ -42,7 +42,7 @@ export default function RequestPanel({ body, effect }: RequestPanelProps) {
             size="sm"
             className="-my-1 -mr-2 h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
             onClick={() => {
-              // Only confirm once the write lands; it rejects outside a secure context or without permission.
+              // Only say "Copied" if the copy actually worked.
               navigator.clipboard
                 .writeText(body)
                 .then(() => setCopied(true))

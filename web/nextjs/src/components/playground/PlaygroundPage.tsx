@@ -21,7 +21,7 @@ import {
 import type { CounselSessionData } from "@/lib/counselSessionData";
 import { cn } from "@/lib/utils";
 import { Monitor, RotateCw } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import RequestPanel from "./RequestPanel";
 import SessionForm from "./SessionForm";
 
@@ -31,9 +31,6 @@ const RAIL_MAX_WIDTH = 720;
 
 /** Keyboard step for the resize handle. */
 const RAIL_KEYBOARD_STEP = 16;
-
-/** How long to wait for `counsel:ready` before treating the launch as stalled and offering a retry. */
-const APP_READY_TIMEOUT_MS = 20_000;
 
 function clampRailWidth(width: number): number {
   return Math.min(RAIL_MAX_WIDTH, Math.max(RAIL_MIN_WIDTH, width));
@@ -52,9 +49,8 @@ export default function PlaygroundPage({
   );
   const [signedAppUrl, setSignedAppUrl] = useState<string | null>(null);
   const [isAppReady, setIsAppReady] = useState(false);
-  const [isAppStalled, setIsAppStalled] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // The body behind the current preview, so a retry relaunches what was sent rather than later form edits.
+  // Last launched body, so Retry resends it even if the form changed since.
   const lastLaunchRef = useRef<CounselSessionData | null>(null);
 
   const splitRef = useRef<HTMLDivElement>(null);
@@ -82,28 +78,14 @@ export default function PlaygroundPage({
     },
   });
 
-  // `counsel:ready` is the only signal the app rendered. If it never arrives, surface that with a retry instead of revealing the iframe as if it loaded.
-  useEffect(() => {
-    if (!signedAppUrl || isAppReady) return;
-    const timeout = setTimeout(() => {
-      clientLogger.warn(
-        { timeoutMs: APP_READY_TIMEOUT_MS },
-        "Counsel app never sent counsel:ready"
-      );
-      setIsAppStalled(true);
-    }, APP_READY_TIMEOUT_MS);
-    return () => clearTimeout(timeout);
-  }, [signedAppUrl, isAppReady]);
-
-  const isPreviewLoading =
-    isPending || (signedAppUrl !== null && !isAppReady && !isAppStalled);
+  // No timeout on purpose: a missing `counsel:ready` is a bug, and Relaunch still works while loading.
+  const isPreviewLoading = isPending || (signedAppUrl !== null && !isAppReady);
 
   async function launch(body: CounselSessionData) {
     lastLaunchRef.current = body;
     try {
       const url = await getSignedUrl(body);
       setIsAppReady(false);
-      setIsAppStalled(false);
       setSignedAppUrl(url);
       setError(null);
     } catch (err) {
@@ -114,7 +96,7 @@ export default function PlaygroundPage({
     }
   }
 
-  /** Signed urls are single use, so a retry always mints a new one. */
+  /** Mints a fresh url, since signed urls are single use. */
   function retry() {
     void launch(lastLaunchRef.current ?? sessionData);
   }
@@ -219,7 +201,7 @@ export default function PlaygroundPage({
         onPointerUp={(event) => {
           event.currentTarget.releasePointerCapture(event.pointerId);
         }}
-        // Fires after pointerup and also when the gesture is cancelled, so the drag can't get stuck on.
+        // Also fires when a drag is cancelled, so resizing never gets stuck on.
         onLostPointerCapture={() => setIsResizing(false)}
         className={cn(
           "hidden w-1.5 shrink-0 cursor-col-resize bg-border outline-none transition-colors hover:bg-foreground/20 focus-visible:bg-foreground/20 lg:block",
@@ -250,37 +232,15 @@ export default function PlaygroundPage({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background">
             <div className="size-6 animate-spin rounded-full border-2 border-muted border-t-foreground" />
             <p className="text-xs text-muted-foreground">
-              {isPending ? "Minting a signed url…" : "Loading the Counsel app…"}
+              {isPending ? (
+                "Minting a signed url…"
+              ) : (
+                <>
+                  Loading the Counsel app… waiting for{" "}
+                  <code>counsel:ready</code>
+                </>
+              )}
             </p>
-          </div>
-        )}
-
-        {isAppStalled && !isPending && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background px-6 text-center">
-            <p className="text-sm font-medium">
-              The Counsel app didn&apos;t report that it loaded
-            </p>
-            <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
-              No <code>counsel:ready</code> message arrived from the iframe
-              within {APP_READY_TIMEOUT_MS / 1000} seconds. Retry mints a new
-              signed url.
-            </p>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={retry}>
-                <RotateCw className="size-3.5" />
-                Retry
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setIsAppStalled(false);
-                  setIsAppReady(true);
-                }}
-              >
-                Show the app anyway
-              </Button>
-            </div>
           </div>
         )}
       </section>

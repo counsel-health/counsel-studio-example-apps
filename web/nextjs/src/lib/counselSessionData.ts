@@ -68,7 +68,12 @@ export type CounselSessionData = {
   agent_context?: Record<string, unknown>;
 };
 
-/** Drops keys set to `undefined`, so an overlay can't erase a base value it never meant to touch. */
+/** Opens chat in a conversation, reusing an unanswered thread instead of creating a new one. */
+export const DEFAULT_CHAT_SESSION_DATA: CounselSessionData = {
+  action: { action: "start_thread" },
+};
+
+/** Drops `undefined` keys so they don't wipe out base values. */
 function definedEntries<T extends object>(value: T | undefined): Partial<T> {
   if (!value) return {};
   return Object.fromEntries(
