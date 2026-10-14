@@ -51,8 +51,6 @@ test.describe("integrated chat - connect to care handoff", () => {
       page.getByRole("button", { name: "Connect to Counsel" })
     ).toBeVisible();
 
-    // During handoff POST /threads is called. signedAppUrl is re-fetched only
-    // if the preloaded iframe has not finished loading, because the token works once.
     const createThreadResponsePromise = page.waitForResponse(
       (resp: Response) =>
         resp.url().includes("/threads") &&

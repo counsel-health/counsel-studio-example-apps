@@ -71,6 +71,20 @@ type ActiveThread =
   | { type: "host"; id: string }
   | { type: "counsel"; id: string };
 
+type CounselIframeLoad = {
+  url: string;
+  loaded: Promise<void>;
+  markLoaded: () => void;
+};
+
+function createCounselIframeLoad(url: string): CounselIframeLoad {
+  let markLoaded = () => {};
+  const loaded = new Promise<void>((resolve) => {
+    markLoaded = resolve;
+  });
+  return { url, loaded, markLoaded };
+}
+
 type IntegratedChatPageProps = {
   /** Counsel API routing: JWT calls Counsel directly; API key sessions use `/api/counsel/*` proxies. */
   counselApiConfig: CounselApiConfig;
@@ -110,7 +124,15 @@ export default function IntegratedChatPage({
   const [activeCounselThreadId, setActiveCounselThreadId] = useState<
     string | null
   >(null);
-  const [loadedSignedUrl, setLoadedSignedUrl] = useState<string | null>(null);
+  const [isAwaitingCounselIframe, setIsAwaitingCounselIframe] = useState(false);
+  const counselIframeLoadRef = useRef<CounselIframeLoad | null>(null);
+  const getCounselIframeLoad = useCallback((url: string) => {
+    const current = counselIframeLoadRef.current;
+    if (current?.url === url) return current;
+    const next = createCounselIframeLoad(url);
+    counselIframeLoadRef.current = next;
+    return next;
+  }, []);
 
   const {
     threads: counselThreads,
@@ -123,7 +145,8 @@ export default function IntegratedChatPage({
   const { createThread, isPending: isCreateThreadPending } =
     useCounselCreateThread(counselApiConfig);
   const preloadedSignedUrl = useCounselPreloadSignedUrl(counselApiConfig);
-  const isLoading = isSignedUrlPending || isCreateThreadPending;
+  const isLoading =
+    isSignedUrlPending || isCreateThreadPending || isAwaitingCounselIframe;
 
   const counselIframeOrigin = useCounselIframeOrigin(counselSessionUrl);
 
@@ -253,10 +276,18 @@ export default function IntegratedChatPage({
         // 2. Append ?threadId to the signed URL so the Counsel app opens directly
         //    into the new thread on load. The token works only once, so reuse the
         //    preloaded URL only after its iframe has loaded; otherwise fetch one now.
-        const base =
-          effectiveSignedUrl && effectiveSignedUrl === loadedSignedUrl
-            ? effectiveSignedUrl
-            : await getSignedUrl(undefined);
+        let base: string;
+        if (effectiveSignedUrl) {
+          setIsAwaitingCounselIframe(true);
+          try {
+            await getCounselIframeLoad(effectiveSignedUrl).loaded;
+          } finally {
+            setIsAwaitingCounselIframe(false);
+          }
+          base = effectiveSignedUrl;
+        } else {
+          base = await getSignedUrl(undefined);
+        }
         const urlWithThread = new URL(base);
         urlWithThread.searchParams.set("threadId", thread_id);
         setCounselSessionUrl(urlWithThread.toString());
@@ -289,7 +320,7 @@ export default function IntegratedChatPage({
       addThread,
       hostThreads,
       effectiveSignedUrl,
-      loadedSignedUrl,
+      getCounselIframeLoad,
     ]
   );
 
@@ -385,7 +416,9 @@ export default function IntegratedChatPage({
               hidden={activeThread.type !== "counsel" || isLoading}
               signedAppUrl={effectiveSignedUrl}
               currentThreadId={activeCounselThreadId ?? undefined}
-              onLoad={() => setLoadedSignedUrl(effectiveSignedUrl)}
+              onLoad={() =>
+                getCounselIframeLoad(effectiveSignedUrl).markLoaded()
+              }
             />
           )}
         </div>
