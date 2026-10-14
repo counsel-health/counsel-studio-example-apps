@@ -1,3 +1,8 @@
+import {
+  mergeCounselSessionData,
+  type CounselInitialMessage,
+  type CounselSessionData,
+} from "@/lib/counselSessionData";
 import type { CreateThreadResponse, ThreadItem } from "@/lib/schemas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
@@ -17,25 +22,28 @@ export type CounselApiConfig = {
   counselJwt: string;
   /** `${COUNSEL_API_URL}/v1/user` — used only when counselJwt is set */
   counselDirectApiBase: string;
+  /** Session data applied to every signed URL from this surface, e.g. `view.navigation`. Per-launch data merges on top of it. */
+  baseSessionData?: CounselSessionData;
 };
-
-export type InitialMessage = { body: string; role: "patient" | "model" };
-
-type SignedUrlAction =
-  | { action: "open_thread"; thread_id: string }
-  | {
-      action: "create_thread";
-      initial_messages?: InitialMessage[];
-      agent_context?: Record<string, unknown>;
-    };
 
 // ---------------------------------------------------------------------------
 // Raw fetch helpers
 // ---------------------------------------------------------------------------
 
-async function fetchThreadsFromServer(config: CounselApiConfig): Promise<ThreadItem[]> {
+/**
+ * Calls a Counsel user endpoint: directly with the JWT when there is one, otherwise through the
+ * same-origin `/api/counsel/…` proxy with session cookies. Throws with the API's own message on failure.
+ */
+async function counselFetch(
+  config: CounselApiConfig,
+  path: string,
+  init: { method: "GET" | "POST"; body?: unknown },
+  failureLabel: string
+): Promise<Response> {
   const direct = config.counselJwt.length > 0;
-  const url = direct ? `${config.counselDirectApiBase}/threads` : "/api/counsel/threads";
+  const url = direct
+    ? `${config.counselDirectApiBase}${path}`
+    : `/api/counsel${path}`;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "Idempotency-Key": crypto.randomUUID(),
@@ -44,56 +52,69 @@ async function fetchThreadsFromServer(config: CounselApiConfig): Promise<ThreadI
     headers.Authorization = `Bearer ${config.counselJwt}`;
   }
   const resp = await fetch(url, {
-    method: "GET",
+    method: init.method,
     headers,
     credentials: direct ? "omit" : "include",
+    body: init.body === undefined ? undefined : JSON.stringify(init.body),
   });
   if (!resp.ok) {
-    throw new Error(`Failed to fetch threads: ${resp.status}`);
+    throw new Error(
+      `${failureLabel} (${resp.status}): ${await readErrorMessage(resp)}`
+    );
   }
+  return resp;
+}
+
+function safeJsonParse(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Pulls the reason off a failed response, which is where a refusal says why — e.g. a module the
+ * organization can't open. Counsel sends `{ message }`; the demo proxy routes send `{ error }`.
+ */
+async function readErrorMessage(resp: Response): Promise<string> {
+  const text = (await resp.text()).trim();
+  if (!text) return resp.statusText;
+  const parsed = safeJsonParse(text);
+  if (parsed && typeof parsed === "object") {
+    const { message, error } = parsed as { message?: unknown; error?: unknown };
+    if (typeof message === "string") return message;
+    if (typeof error === "string") return error;
+  }
+  return text;
+}
+
+async function fetchThreadsFromServer(
+  config: CounselApiConfig
+): Promise<ThreadItem[]> {
+  const resp = await counselFetch(
+    config,
+    "/threads",
+    { method: "GET" },
+    "Threads request failed"
+  );
   const data = await resp.json();
   return data.threads ?? [];
 }
 
 async function fetchSignedUrlFromServer(
   config: CounselApiConfig,
-  action?: SignedUrlAction,
+  sessionData?: CounselSessionData
 ): Promise<string> {
-  const sessionData: Record<string, unknown> = { view: { navigation: "integrated" } };
-  if (action) {
-    // Counsel signedAppUrl expects a single `action` object. For create_thread,
-    // initial_messages and agent_context must live on that object (not on sessionData).
-    if (action.action === "create_thread") {
-      sessionData.action = {
-        action: "create_thread",
-        initial_messages: action.initial_messages,
-        agent_context: action.agent_context,
-      };
-    } else {
-      sessionData.action = action;
-    }
-  }
-
-  const direct = config.counselJwt.length > 0;
-  const signedUrlEndpoint = direct
-    ? `${config.counselDirectApiBase}/signedAppUrl`
-    : "/api/counsel/signedAppUrl";
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Idempotency-Key": crypto.randomUUID(),
-  };
-  if (direct) {
-    headers.Authorization = `Bearer ${config.counselJwt}`;
-  }
-  const resp = await fetch(signedUrlEndpoint, {
-    method: "POST",
-    headers,
-    credentials: direct ? "omit" : "include",
-    body: JSON.stringify(sessionData),
-  });
-  if (!resp.ok) {
-    throw new Error(`Failed to fetch signed URL: ${resp.status}`);
-  }
+  const resp = await counselFetch(
+    config,
+    "/signedAppUrl",
+    {
+      method: "POST",
+      body: mergeCounselSessionData(config.baseSessionData, sessionData),
+    },
+    "Signed url request failed"
+  );
   const { url } = await resp.json();
   return url;
 }
@@ -104,32 +125,20 @@ async function fetchSignedUrlFromServer(
 
 export type CreateThreadParams = {
   module?: string;
-  initial_messages?: InitialMessage[];
+  initial_messages?: CounselInitialMessage[];
   agent_context?: Record<string, unknown>;
 };
 
 async function createThreadOnServer(
   config: CounselApiConfig,
-  params: CreateThreadParams,
+  params: CreateThreadParams
 ): Promise<CreateThreadResponse> {
-  const direct = config.counselJwt.length > 0;
-  const url = direct ? `${config.counselDirectApiBase}/threads` : "/api/counsel/threads";
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Idempotency-Key": crypto.randomUUID(),
-  };
-  if (direct) {
-    headers.Authorization = `Bearer ${config.counselJwt}`;
-  }
-  const resp = await fetch(url, {
-    method: "POST",
-    headers,
-    credentials: direct ? "omit" : "include",
-    body: JSON.stringify(params),
-  });
-  if (!resp.ok) {
-    throw new Error(`Failed to create thread: ${resp.status}`);
-  }
+  const resp = await counselFetch(
+    config,
+    "/threads",
+    { method: "POST", body: params },
+    "Create thread request failed"
+  );
   return resp.json();
 }
 
@@ -141,7 +150,10 @@ async function createThreadOnServer(
  * Fetches Counsel threads via react-query and provides optimistic update
  * helpers for sidebar management.
  */
-export function useCounselThreads(config: CounselApiConfig) {
+export function useCounselThreads(
+  config: CounselApiConfig,
+  options?: { enabled?: boolean }
+) {
   const queryClient = useQueryClient();
   const queryKey = counselQueryKeys.threads(config.counselUserId);
 
@@ -152,14 +164,17 @@ export function useCounselThreads(config: CounselApiConfig) {
   } = useQuery({
     queryKey,
     queryFn: () => fetchThreadsFromServer(config),
-    enabled: !!config.counselUserId,
+    enabled: !!config.counselUserId && options?.enabled !== false,
   });
 
   const addThread = useCallback(
     (thread: ThreadItem) => {
-      queryClient.setQueryData<ThreadItem[]>(queryKey, (old = []) => [thread, ...old]);
+      queryClient.setQueryData<ThreadItem[]>(queryKey, (old = []) => [
+        thread,
+        ...old,
+      ]);
     },
-    [queryClient, queryKey],
+    [queryClient, queryKey]
   );
 
   /** Marks the threads query stale and triggers a background refetch. */
@@ -176,7 +191,8 @@ export function useCounselThreads(config: CounselApiConfig) {
  */
 export function useCounselSignedUrl(config: CounselApiConfig) {
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (action?: SignedUrlAction) => fetchSignedUrlFromServer(config, action),
+    mutationFn: (sessionData?: CounselSessionData) =>
+      fetchSignedUrlFromServer(config, sessionData),
   });
 
   return { getSignedUrl: mutateAsync, isPending };
@@ -189,7 +205,8 @@ export function useCounselSignedUrl(config: CounselApiConfig) {
  */
 export function useCounselCreateThread(config: CounselApiConfig) {
   const { mutateAsync, isPending } = useMutation({
-    mutationFn: (params: CreateThreadParams) => createThreadOnServer(config, params),
+    mutationFn: (params: CreateThreadParams) =>
+      createThreadOnServer(config, params),
   });
 
   return { createThread: mutateAsync, isPending };
@@ -203,7 +220,10 @@ export function useCounselCreateThread(config: CounselApiConfig) {
  */
 export function useCounselPreloadSignedUrl(config: CounselApiConfig) {
   const { data } = useQuery({
-    queryKey: counselQueryKeys.preloadedSignedUrl(config.counselUserId),
+    queryKey: counselQueryKeys.preloadedSignedUrl(
+      config.counselUserId,
+      config.baseSessionData
+    ),
     queryFn: () => fetchSignedUrlFromServer(config),
     enabled: !!config.counselUserId,
     // Signed URLs are valid for ~1 hour; treat as fresh for 50 min

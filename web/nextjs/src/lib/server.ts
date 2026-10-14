@@ -33,7 +33,8 @@ function isCounselJwtValid(jwt: string): boolean {
   try {
     const payload = decodeJwt(jwt);
     return (
-      typeof payload.exp === "number" && Date.now() < payload.exp * 1000 - JWT_EXPIRY_BUFFER_MS
+      typeof payload.exp === "number" &&
+      Date.now() < payload.exp * 1000 - JWT_EXPIRY_BUFFER_MS
     );
   } catch {
     return false;
@@ -52,7 +53,7 @@ async function fetchCounselJwt(sessionToken: string): Promise<string> {
   if (!resp.ok) {
     const detail = await readHttpErrorDetail(resp);
     throw new Error(
-      `Failed to fetch Counsel JWT: ${resp.status} ${resp.statusText}${detail ? ` ${detail}` : ""}`,
+      `Failed to fetch Counsel JWT: ${resp.status} ${resp.statusText}${detail ? ` ${detail}` : ""}`
     );
   }
   const { token } = CounselTokenResponseSchema.parse(await resp.json());
@@ -65,7 +66,7 @@ async function fetchCounselJwt(sessionToken: string): Promise<string> {
  * Returns null if the session is not using JWT auth.
  */
 export async function getValidCounselJwt(
-  session: IronSession<SessionData>,
+  session: IronSession<SessionData>
 ): Promise<string | null> {
   if (session.authType !== "jwt") return null;
   if (session.counselJwt && isCounselJwtValid(session.counselJwt)) {
@@ -79,7 +80,9 @@ export async function getValidCounselJwt(
  * Mutates session.counselJwt but does NOT call session.save() — the caller (handleLogin,
  * a Server Action) is responsible for saving.
  */
-export async function prewarmSessionJwt(session: IronSession<SessionData>): Promise<void> {
+export async function prewarmSessionJwt(
+  session: IronSession<SessionData>
+): Promise<void> {
   if (session.authType !== "jwt") return;
   session.counselJwt = await fetchCounselJwt(session.token);
 }
@@ -89,32 +92,38 @@ export async function prewarmSessionJwt(session: IronSession<SessionData>): Prom
  *
  * Always proxied through the demo server (demo server calls Counsel with the access code API key).
  * Issuer/JWT browser-direct traffic uses session.counselJwt from {@link getValidCounselJwt}, not this helper.
+ *
+ * The fetch cache key includes the request body, so different sessionData never shares a cached url.
+ * The per-user tag only controls invalidation: revalidating it drops every cached url for that user.
  */
 export async function getCounselSignedAppUrl(
   session: IronSession<SessionData>,
-  sessionData?: Record<string, unknown>,
+  sessionData?: Record<string, unknown>
 ) {
   const { token, counselUserId } = session;
 
-  const resp = await fetchWithRetry(`${serverEnv.SERVER_HOST}/user/signedAppUrl`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...getAuthorizationHeader(token),
-    },
-    body: JSON.stringify(sessionData ?? {}),
-    cache: "default",
-    next: {
-      revalidate: 3600,
-      tags: [getChatSignedAppUrlCacheKey(counselUserId)],
-    },
-  });
+  const resp = await fetchWithRetry(
+    `${serverEnv.SERVER_HOST}/user/signedAppUrl`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthorizationHeader(token),
+      },
+      body: JSON.stringify(sessionData ?? {}),
+      cache: "default",
+      next: {
+        revalidate: 3600,
+        tags: [getChatSignedAppUrlCacheKey(counselUserId)],
+      },
+    }
+  );
   if (!resp.ok) {
     const detail = await readHttpErrorDetail(resp);
     throw new Error(
       `Failed to get signed app url: ${resp.status} ${resp.statusText}${
         detail ? ` ${detail}` : ""
-      }`,
+      }`
     );
   }
   return SignedAppUrlResponseSchema.parse(await resp.json()).url;
@@ -130,7 +139,7 @@ export async function getCounselSignedAppUrl(
  */
 export async function signUpCounselUser(
   userId: string,
-  accessCode: string,
+  accessCode: string
 ): Promise<
   | {
       success: true;
@@ -192,7 +201,7 @@ async function fetchFromCounselServer<T>(
   cache?: {
     tags: string[];
     revalidate?: number;
-  },
+  }
 ): Promise<T> {
   const url = `${serverEnv.SERVER_HOST}/${path}`;
   serverLogger.debug({ url }, "Fetching from counsel server");
@@ -204,7 +213,9 @@ async function fetchFromCounselServer<T>(
     },
     body: JSON.stringify(body),
     cache: cache ? "default" : "no-store",
-    next: cache ? { revalidate: cache.revalidate, tags: cache.tags } : undefined,
+    next: cache
+      ? { revalidate: cache.revalidate, tags: cache.tags }
+      : undefined,
   });
 
   if (!response.ok) {
@@ -215,12 +226,12 @@ async function fetchFromCounselServer<T>(
         responseStatusText: response.statusText,
         detail,
       },
-      "Failed to fetch from counsel server",
+      "Failed to fetch from counsel server"
     );
     throw new Error(
       `Failed to fetch from counsel server: ${response.status} ${response.statusText}${
         detail ? ` ${detail}` : ""
-      }`,
+      }`
     );
   }
 

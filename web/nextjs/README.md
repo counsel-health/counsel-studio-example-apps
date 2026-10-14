@@ -46,6 +46,33 @@ NextJS by default will server render all components. Its critical to prevent the
 
 To prevent the iFrame from being server rendered, check out the implementation of the [CounselApp](./src/components/counsel/CounselApp.tsx) component.
 
+## Session Data Playground
+
+The Playground tab (`/dashboard/playground`) builds the session data body of
+`POST /v1/user/signedAppUrl` and launches it next to the form. Pick an action (`start_thread`,
+`create_thread`, `open_thread`, `open_page`, or none), then the module, what the thread is seeded
+with, and the `view` overlays. It shows the resulting request body and what Counsel will do with it,
+including the case that is easy to miss: an action sent without `initial_messages` can reuse a thread
+the user never replied to, while `initial_messages` always start a new one. See
+[counselSessionOptions.ts](./src/lib/counselSessionOptions.ts) for the choices,
+[counselSessionParams.ts](./src/lib/counselSessionParams.ts) for how they become a request body, and
+[counselSessionData.ts](./src/lib/counselSessionData.ts) for the types.
+
+Launching mints a signed url from the browser and loads it in the preview iframe beside the form.
+Signed urls are single use, so every launch requests a new one. The divider between the two panels
+can be dragged to give either side more room.
+
+What an action can do depends on the organization the access code belongs to: a module the
+organization has disabled is refused with `403 Module not available`, and pages like consents are
+enabled per organization too — where consents isn't enabled the signed url is still issued and the
+app opens chat instead. The playground shows whatever the API says, so these differences are
+visible rather than silent.
+
+The playground is its own tab rather than part of either chat page because session data applies to
+both integration patterns: the standalone iframe at `/dashboard/chat`, which mints its signed url on
+the server the way your backend would, and the host-managed integrated experience at
+`/integrated/chat`.
+
 ## Caching of Signed App Url
 
 Ideally, the signed app url is cached for the entirety of the user's session. This is to prevent flashing of the iFrame each time its reloaded.

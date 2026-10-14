@@ -9,7 +9,10 @@ import {
   useCounselThreads,
   type CounselApiConfig,
 } from "@/hooks/useCounselApi";
-import { useCounselInboundMessages } from "@/hooks/useCounselAppMessageHandler";
+import {
+  useCounselIframeOrigin,
+  useCounselInboundMessages,
+} from "@/hooks/useCounselAppMessageHandler";
 import { clientLogger } from "@/lib/clientLogger";
 import { PanelLeftOpen } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -122,14 +125,7 @@ export default function IntegratedChatPage({
   const preloadedSignedUrl = useCounselPreloadSignedUrl(counselApiConfig);
   const isLoading = isSignedUrlPending || isCreateThreadPending;
 
-  const counselIframeOrigin = useMemo(() => {
-    if (!counselSessionUrl) return null;
-    try {
-      return new URL(counselSessionUrl).origin;
-    } catch {
-      return null;
-    }
-  }, [counselSessionUrl]);
+  const counselIframeOrigin = useCounselIframeOrigin(counselSessionUrl);
 
   useCounselInboundMessages({
     iframeOrigin: counselIframeOrigin,
@@ -168,8 +164,7 @@ export default function IntegratedChatPage({
       // First Counsel thread click with no preloaded URL — get a signed URL with open_thread
       try {
         const url = await getSignedUrl({
-          action: "open_thread",
-          thread_id: threadId,
+          action: { action: "open_thread", thread_id: threadId },
         });
         setCounselSessionUrl(url);
       } catch (error) {
