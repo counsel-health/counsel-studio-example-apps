@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "demo-server",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "--cwd", "server/nodejs", "dev"],
+      "port": 4003
+    },
+    {
+      "name": "demo-web",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "--cwd", "web/nextjs", "dev"],
+      "port": 3001
+    }
+  ]
+}

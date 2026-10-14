@@ -1,5 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { mergeCounselSessionData } from "../counselSessionData";
+import {
+  DEFAULT_CHAT_SESSION_DATA,
+  mergeCounselSessionData,
+} from "../counselSessionData";
 import {
   buildCounselSessionData,
   DEFAULT_COUNSEL_SESSION_PARAMS,
@@ -118,5 +121,12 @@ describe("describeCounselSessionEffect", () => {
         seed: "patient_message",
       }).label
     ).toBe("New thread");
+  });
+});
+
+describe("DEFAULT_CHAT_SESSION_DATA", () => {
+  test("opens chat with start_thread, the same action the playground defaults to", () => {
+    expect(DEFAULT_CHAT_SESSION_DATA.action?.action).toBe("start_thread");
+    expect(DEFAULT_COUNSEL_SESSION_PARAMS.action).toBe("start_thread");
   });
 });

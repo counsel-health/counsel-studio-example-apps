@@ -73,6 +73,11 @@ both integration patterns: the standalone iframe at `/dashboard/chat`, which min
 the server the way your backend would, and the host-managed integrated experience at
 `/integrated/chat`.
 
+`/dashboard/chat` opens with `{ "action": { "action": "start_thread" } }`, the same default the
+playground starts from, so the user lands in a conversation. The integrated page doesn't: its signed
+url is reused as the base for opening specific threads (`?threadId=` and `switch_thread`), and a
+`start_thread` baked into it would compete with the thread being opened.
+
 ## Caching of Signed App Url
 
 Ideally, the signed app url is cached for the entirety of the user's session. This is to prevent flashing of the iFrame each time its reloaded.

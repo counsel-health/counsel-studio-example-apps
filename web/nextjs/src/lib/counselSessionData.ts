@@ -68,6 +68,15 @@ export type CounselSessionData = {
   agent_context?: Record<string, unknown>;
 };
 
+/**
+ * What a chat surface sends when it opens with nothing more specific to do. `start_thread` without
+ * `initial_messages` lands the user in a conversation, reusing a thread they never replied to rather
+ * than piling up empty ones. Matches the playground's default action.
+ */
+export const DEFAULT_CHAT_SESSION_DATA: CounselSessionData = {
+  action: { action: "start_thread" },
+};
+
 /** Drops keys set to `undefined`, so an overlay can't erase a base value it never meant to touch. */
 function definedEntries<T extends object>(value: T | undefined): Partial<T> {
   if (!value) return {};
