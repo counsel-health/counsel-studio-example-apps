@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { clientLogger } from "@/lib/clientLogger";
 import type { CounselSessionEffect } from "@/lib/counselSessionParams";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -41,8 +42,13 @@ export default function RequestPanel({ body, effect }: RequestPanelProps) {
             size="sm"
             className="-my-1 -mr-2 h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
             onClick={() => {
-              void navigator.clipboard.writeText(body);
-              setCopied(true);
+              // Only confirm once the write lands; it rejects outside a secure context or without permission.
+              navigator.clipboard
+                .writeText(body)
+                .then(() => setCopied(true))
+                .catch((err: unknown) =>
+                  clientLogger.warn({ err }, "Failed to copy request body")
+                );
             }}
           >
             {copied ? (

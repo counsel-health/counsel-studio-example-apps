@@ -86,7 +86,9 @@ inside it.
 ```
 
 `initial_messages` are rendered in the thread; `agent_context` is passed to the AI but not shown;
-`metadata` is persisted on the thread when it is created, so you can correlate it with your records.
+`action.metadata` is persisted on the thread when it is created, so you can correlate it with your
+records. The top-level `metadata` is different: it identifies the app the session was launched from
+(e.g. `{ "app_name": "..." }`) and is not stored on the thread.
 
 The other actions are `open_thread` (`thread_id`), `open_page` (`page`), and `create_thread`, which
 takes the same fields as `start_thread`. Prefer `start_thread` in a new integration.

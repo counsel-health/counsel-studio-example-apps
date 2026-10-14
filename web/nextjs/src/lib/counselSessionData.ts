@@ -68,6 +68,14 @@ export type CounselSessionData = {
   agent_context?: Record<string, unknown>;
 };
 
+/** Drops keys set to `undefined`, so an overlay can't erase a base value it never meant to touch. */
+function definedEntries<T extends object>(value: T | undefined): Partial<T> {
+  if (!value) return {};
+  return Object.fromEntries(
+    Object.entries(value).filter(([, v]) => v !== undefined)
+  ) as Partial<T>;
+}
+
 /** Merges `view`, `metadata`, and `agent_context` key by key. `action` is replaced wholesale, since its fields depend on each other. */
 export function mergeCounselSessionData(
   base: CounselSessionData | undefined,
@@ -77,11 +85,17 @@ export function mergeCounselSessionData(
   const o = overlay ?? {};
   const merged: CounselSessionData = { ...b };
   if (o.action !== undefined) merged.action = o.action;
-  if (o.view !== undefined) merged.view = { ...b.view, ...o.view };
-  if (o.metadata !== undefined)
-    merged.metadata = { ...b.metadata, ...o.metadata };
+  if (o.view !== undefined) {
+    merged.view = { ...b.view, ...definedEntries(o.view) };
+  }
+  if (o.metadata !== undefined) {
+    merged.metadata = { ...b.metadata, ...definedEntries(o.metadata) };
+  }
   if (o.agent_context !== undefined) {
-    merged.agent_context = { ...b.agent_context, ...o.agent_context };
+    merged.agent_context = {
+      ...b.agent_context,
+      ...definedEntries(o.agent_context),
+    };
   }
   return merged;
 }

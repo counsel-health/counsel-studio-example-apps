@@ -18,8 +18,9 @@ import {
   describeCounselSessionEffect,
   type CounselSessionParams,
 } from "@/lib/counselSessionParams";
+import type { CounselSessionData } from "@/lib/counselSessionData";
 import { cn } from "@/lib/utils";
-import { Monitor } from "lucide-react";
+import { Monitor, RotateCw } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import RequestPanel from "./RequestPanel";
 import SessionForm from "./SessionForm";
@@ -28,7 +29,10 @@ const RAIL_DEFAULT_WIDTH = 420;
 const RAIL_MIN_WIDTH = 320;
 const RAIL_MAX_WIDTH = 720;
 
-/** How long to keep waiting for `counsel:ready` before showing the iframe regardless. */
+/** Keyboard step for the resize handle. */
+const RAIL_KEYBOARD_STEP = 16;
+
+/** How long to wait for `counsel:ready` before treating the launch as stalled and offering a retry. */
 const APP_READY_TIMEOUT_MS = 20_000;
 
 function clampRailWidth(width: number): number {
@@ -48,7 +52,10 @@ export default function PlaygroundPage({
   );
   const [signedAppUrl, setSignedAppUrl] = useState<string | null>(null);
   const [isAppReady, setIsAppReady] = useState(false);
+  const [isAppStalled, setIsAppStalled] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The body behind the current preview, so a retry relaunches what was sent rather than later form edits.
+  const lastLaunchRef = useRef<CounselSessionData | null>(null);
 
   const splitRef = useRef<HTMLDivElement>(null);
   const [railWidth, setRailWidth] = useState(RAIL_DEFAULT_WIDTH);
@@ -75,19 +82,28 @@ export default function PlaygroundPage({
     },
   });
 
-  // The signed url goes through a login redirect before the app renders, so don't strand the spinner if `counsel:ready` never lands.
+  // `counsel:ready` is the only signal the app rendered. If it never arrives, surface that with a retry instead of revealing the iframe as if it loaded.
   useEffect(() => {
     if (!signedAppUrl || isAppReady) return;
-    const timeout = setTimeout(() => setIsAppReady(true), APP_READY_TIMEOUT_MS);
+    const timeout = setTimeout(() => {
+      clientLogger.warn(
+        { timeoutMs: APP_READY_TIMEOUT_MS },
+        "Counsel app never sent counsel:ready"
+      );
+      setIsAppStalled(true);
+    }, APP_READY_TIMEOUT_MS);
     return () => clearTimeout(timeout);
   }, [signedAppUrl, isAppReady]);
 
-  const isPreviewLoading = isPending || (signedAppUrl !== null && !isAppReady);
+  const isPreviewLoading =
+    isPending || (signedAppUrl !== null && !isAppReady && !isAppStalled);
 
-  async function launch() {
+  async function launch(body: CounselSessionData) {
+    lastLaunchRef.current = body;
     try {
-      const url = await getSignedUrl(sessionData);
+      const url = await getSignedUrl(body);
       setIsAppReady(false);
+      setIsAppStalled(false);
       setSignedAppUrl(url);
       setError(null);
     } catch (err) {
@@ -96,6 +112,11 @@ export default function PlaygroundPage({
         err instanceof Error ? err.message : "Failed to mint a signed url."
       );
     }
+  }
+
+  /** Signed urls are single use, so a retry always mints a new one. */
+  function retry() {
+    void launch(lastLaunchRef.current ?? sessionData);
   }
 
   function resizeRail(clientX: number) {
@@ -141,14 +162,24 @@ export default function PlaygroundPage({
 
         <div className="space-y-2 border-t px-5 py-3">
           {error && (
-            <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs leading-relaxed text-destructive">
-              {error}
-            </p>
+            <div className="flex items-start justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs leading-relaxed text-destructive">
+              <p className="min-w-0">{error}</p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-my-1 -mr-2 h-7 shrink-0 px-2 text-xs text-destructive hover:text-destructive"
+                disabled={isPending}
+                onClick={retry}
+              >
+                <RotateCw className="size-3.5" />
+                Retry
+              </Button>
+            </div>
           )}
           <Button
             className="w-full"
             disabled={!canLaunch || isPending}
-            onClick={() => void launch()}
+            onClick={() => void launch(sessionData)}
           >
             {isPending
               ? "Minting signed url…"
@@ -163,6 +194,21 @@ export default function PlaygroundPage({
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize the playground panels"
+        aria-valuenow={railWidth}
+        aria-valuemin={RAIL_MIN_WIDTH}
+        aria-valuemax={RAIL_MAX_WIDTH}
+        tabIndex={0}
+        onKeyDown={(event) => {
+          const step =
+            event.key === "ArrowLeft"
+              ? -RAIL_KEYBOARD_STEP
+              : event.key === "ArrowRight"
+                ? RAIL_KEYBOARD_STEP
+                : 0;
+          if (!step) return;
+          event.preventDefault();
+          setRailWidth((width) => clampRailWidth(width + step));
+        }}
         onPointerDown={(event) => {
           event.currentTarget.setPointerCapture(event.pointerId);
           setIsResizing(true);
@@ -172,10 +218,11 @@ export default function PlaygroundPage({
         }}
         onPointerUp={(event) => {
           event.currentTarget.releasePointerCapture(event.pointerId);
-          setIsResizing(false);
         }}
+        // Fires after pointerup and also when the gesture is cancelled, so the drag can't get stuck on.
+        onLostPointerCapture={() => setIsResizing(false)}
         className={cn(
-          "hidden w-1.5 shrink-0 cursor-col-resize bg-border transition-colors hover:bg-foreground/20 lg:block",
+          "hidden w-1.5 shrink-0 cursor-col-resize bg-border outline-none transition-colors hover:bg-foreground/20 focus-visible:bg-foreground/20 lg:block",
           isResizing && "bg-foreground/20"
         )}
       />
@@ -205,6 +252,35 @@ export default function PlaygroundPage({
             <p className="text-xs text-muted-foreground">
               {isPending ? "Minting a signed url…" : "Loading the Counsel app…"}
             </p>
+          </div>
+        )}
+
+        {isAppStalled && !isPending && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background px-6 text-center">
+            <p className="text-sm font-medium">
+              The Counsel app didn&apos;t report that it loaded
+            </p>
+            <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
+              No <code>counsel:ready</code> message arrived from the iframe
+              within {APP_READY_TIMEOUT_MS / 1000} seconds. Retry mints a new
+              signed url.
+            </p>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={retry}>
+                <RotateCw className="size-3.5" />
+                Retry
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setIsAppStalled(false);
+                  setIsAppReady(true);
+                }}
+              >
+                Show the app anyway
+              </Button>
+            </div>
           </div>
         )}
       </section>

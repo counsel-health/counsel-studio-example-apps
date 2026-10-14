@@ -26,6 +26,16 @@ function optionalOptions(values: readonly string[]) {
   ];
 }
 
+function formatThreadActivity(timestamp: string): string {
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime())
+    ? "unknown time"
+    : date.toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+}
+
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <span className="block text-xs font-medium text-foreground">
@@ -217,7 +227,8 @@ export default function SessionForm({
               },
               ...threads.map((thread) => ({
                 value: thread.id,
-                label: thread.display_name || "Counsel chat",
+                // Untitled threads all share a fallback name, so the last activity tells them apart.
+                label: `${thread.display_name || "Counsel chat"} · ${formatThreadActivity(thread.last_activity_time)}`,
               })),
             ]}
           />
