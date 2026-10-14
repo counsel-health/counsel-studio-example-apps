@@ -51,8 +51,8 @@ test.describe("integrated chat - connect to care handoff", () => {
       page.getByRole("button", { name: "Connect to Counsel" })
     ).toBeVisible();
 
-    // During handoff only POST /threads is called — signedAppUrl is NOT
-    // re-fetched because the preloaded URL (with ?threadId= appended) is reused.
+    // During handoff POST /threads is called. signedAppUrl is re-fetched only
+    // if the preloaded iframe has not finished loading, because the token works once.
     const createThreadResponsePromise = page.waitForResponse(
       (resp: Response) =>
         resp.url().includes("/threads") &&
@@ -77,8 +77,8 @@ test.describe("integrated chat - connect to care handoff", () => {
     const src = await iframe.getAttribute("src");
     expect(src).toBeTruthy();
     expect(src).toMatch(/^https?:\/\//);
-    // The preloaded URL is reused with ?threadId= appended so the Counsel app
-    // opens directly into the new thread without a separate signedAppUrl call.
+    // The signed URL (preloaded or fresh) gets ?threadId= appended so the
+    // Counsel app opens directly into the new thread.
     expect(src).toContain("threadId=");
   });
 });

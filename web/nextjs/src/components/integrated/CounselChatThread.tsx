@@ -6,6 +6,7 @@ type CounselChatThreadProps = {
   signedAppUrl: string;
   /** Real Counsel thread ID to switch to without reloading the iframe. */
   currentThreadId?: string;
+  onLoad?: () => void;
 };
 
 /**
@@ -16,6 +17,7 @@ export default function CounselChatThread({
   hidden,
   signedAppUrl,
   currentThreadId,
+  onLoad,
 }: CounselChatThreadProps) {
   return (
     <div className={cn("relative h-full w-full", hidden ? "hidden" : "")}>
@@ -24,6 +26,7 @@ export default function CounselChatThread({
         signedAppUrl={signedAppUrl}
         className="h-full w-full"
         currentThreadId={currentThreadId}
+        onLoad={onLoad}
       />
     </div>
   );

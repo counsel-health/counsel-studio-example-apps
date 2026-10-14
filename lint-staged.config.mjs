@@ -33,24 +33,24 @@ export default {
     if (files.length === 0) return [];
     const q = quotedRelativePaths(files, "web/nextjs");
     return [
-      `cd web/nextjs && bunx oxfmt --write ${q}`,
-      `cd web/nextjs && bunx oxlint ${q}`,
+      `bun run --cwd web/nextjs oxfmt --write ${q}`,
+      `bun run --cwd web/nextjs oxlint ${q}`,
     ];
   },
   "server/nodejs/**/*.ts": (files) => {
     if (files.length === 0) return [];
     const q = quotedRelativePaths(files, "server/nodejs");
     return [
-      `cd server/nodejs && bunx oxfmt --write ${q}`,
-      `cd server/nodejs && bunx oxlint ${q}`,
+      `bun run --cwd server/nodejs oxfmt --write ${q}`,
+      `bun run --cwd server/nodejs oxlint ${q}`,
     ];
   },
   "automation-testing/**/*.{ts,tsx}": (files) => {
     if (files.length === 0) return [];
     const q = quotedRelativePaths(files, "automation-testing");
     return [
-      `cd automation-testing && bunx oxfmt --write ${q}`,
-      `cd automation-testing && bunx oxlint ${q}`,
+      `bun run --cwd automation-testing oxfmt --write ${q}`,
+      `bun run --cwd automation-testing oxlint ${q}`,
     ];
   },
 };
