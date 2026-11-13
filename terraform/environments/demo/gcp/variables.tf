@@ -1,5 +1,5 @@
 variable "gcp_project_id" {
-  description = "GCP project that hosts the demo apps. No default: the repo is public, CI passes it from the PROJECT_ID repo variable"
+  description = "GCP project that hosts the demo apps. No default: the repo is public, the Terraform Cloud workspace supplies it"
   type        = string
 }
 

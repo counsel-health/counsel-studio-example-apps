@@ -23,9 +23,9 @@ Terraform does not own these items:
 
 Edit the `services` variable in `environments/demo/gcp/variables.tf` to change CPU, memory, instance limits, concurrency, or secrets.
 
-1. Open a PR. `ci-terraform.yml` checks the format, validates the config, and runs a plan.
-2. Open the run link in the `terraform-plan` job and read the plan in Terraform Cloud.
-3. Merge the PR. `cd-terraform.yml` applies the change on `main`.
+1. Open a PR. `ci-terraform.yml` checks the format and validates the config.
+2. Terraform Cloud runs a speculative plan on the PR. Open the Terraform Cloud check on the PR and read the plan.
+3. Merge the PR. Terraform Cloud runs the apply on `main`.
 
 ## Run Terraform locally
 
@@ -35,19 +35,20 @@ Use the Terraform version in `.terraform-version`.
 terraform login
 cd terraform/environments/demo/gcp
 terraform init
-terraform plan -var "gcp_project_id=<project id>"
+terraform plan
 ```
 
-Do not run `terraform apply` locally. The CD workflow is the only apply path.
+A local plan is speculative. The workspace does not accept a local `terraform apply`.
 
-## Setup
+## Workspace setup
 
-- The workspace must use the CLI-driven workflow with remote execution. It must hold GCP credentials for the project.
+- The workspace uses the version control workflow, connected to this repository and the `main` branch.
+- The working directory is `terraform/environments/demo/gcp`.
 - The Terraform version of the workspace must be the version in `.terraform-version`.
-- The `TF_PLAN_TOKEN` repository secret must hold a Terraform Cloud token that can plan only.
-- The `terraform-apply` GitHub environment must hold the `TF_API_TOKEN` secret, a token that can apply. Limit the environment to `main`.
-- The `PROJECT_ID` repository variable supplies the `gcp_project_id` variable.
+- The workspace must hold GCP credentials for the project.
+- The workspace must hold the Terraform variable `gcp_project_id`.
+- Keep speculative plans for fork PRs off. A fork plan runs fork code with the workspace credentials.
 
 ## Public logs
 
-This repository and its Actions logs are public. A plan prints live env values and account emails. The workflows print only the run link and the summary line. Read the full plan and apply in Terraform Cloud.
+This repository and its Actions logs are public. A plan prints live env values and account emails. No workflow in this repository runs a plan or an apply, and no workflow holds a Terraform Cloud token. Read each plan and apply in Terraform Cloud.
