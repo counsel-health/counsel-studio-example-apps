@@ -3,14 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useMobile } from "@/hooks/useMobile";
 import { useState } from "react";
-import {
-  Home,
-  ShoppingBag,
-  User,
-  Menu,
-  MessageCircle,
-  FlaskConical,
-} from "lucide-react";
+import { Home, User, Menu, MessageCircle, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -41,11 +34,6 @@ export default function Header({ userAgent }: HeaderProps) {
       icon: <Home className="h-5 w-5" />,
       href: "/dashboard",
       label: "Home",
-    },
-    {
-      icon: <ShoppingBag className="h-5 w-5" />,
-      href: "/dashboard/orders",
-      label: "Orders",
     },
     {
       icon: <MessageCircle className="h-5 w-5" />,

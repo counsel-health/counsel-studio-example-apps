@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -8,13 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  Activity,
-  Pill,
-  FlaskRoundIcon as Flask,
-} from "lucide-react";
+import { Activity, Pill, FlaskRoundIcon as Flask } from "lucide-react";
 import { Order } from "@/types/order";
 
 export default function DashboardPage({
@@ -61,11 +54,6 @@ export default function DashboardPage({
             <p className="text-xs text-muted-foreground">
               Next refill: May 15, 2025
             </p>
-            <Button variant="link" className="mt-2 p-0" asChild>
-              <Link href="/dashboard/orders">
-                View all <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
           </CardContent>
         </Card>
 
@@ -79,11 +67,6 @@ export default function DashboardPage({
             <p className="text-xs text-muted-foreground">
               Latest: Blood Panel (May 4)
             </p>
-            <Button variant="link" className="mt-2 p-0" asChild>
-              <Link href="/dashboard/orders">
-                View results <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -130,9 +113,6 @@ export default function DashboardPage({
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="mt-4 w-full" asChild>
-              <Link href="/dashboard/orders">View all orders</Link>
-            </Button>
           </CardContent>
         </Card>
       </div>
