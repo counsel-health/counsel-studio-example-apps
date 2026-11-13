@@ -1,0 +1,32 @@
+/* Theme: example (neutral). A made-up skin that shows a second partner is just tokens. */
+[data-theme="example"] {
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --app-bg: #f4f4f2;
+  --app-surface: #ffffff;
+  --app-text: #1c1c1c;
+  --app-text-muted: #595959;
+  --app-text-subtle: #404040;
+  --app-avatar-bg: #e2e2de;
+  --app-chart: #e4e1d8;
+  --app-chart-current: #b4541f;
+  --app-radius-card: 8px;
+
+  --care-bg: #3a3a3a;
+  --care-text: #ffffff;
+  --care-muted: #d0d0d0;
+  --care-mark: #ebb896;
+  --care-icon-bg: rgba(255, 255, 255, 0.1);
+  --care-radius: 10px;
+  --care-shadow: 0 3px 10px rgba(0, 0, 0, 0.14);
+  --care-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.2);
+
+  --chat-bg: #ffffff;
+  --chat-border: #e6e6e6;
+  --chat-text: #1c1c1c;
+  --chat-icon: #404040;
+
+  --chat-in-duration: 300ms;
+  --chat-out-duration: 240ms;
+}
