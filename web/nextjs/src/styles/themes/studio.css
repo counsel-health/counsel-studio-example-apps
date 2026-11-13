@@ -1,0 +1,38 @@
+/* Theme: Studio (default). Tokens only, scoped by data-theme on the home page root.
+   Built from the app-wide tokens in src/app/globals.css so the home matches the other tabs.
+   --font-body isn't set here: the home inherits the app's Instrument Sans from <html>. */
+[data-theme="studio"] {
+  /* Fonts */
+  --font-display: var(--font-body);
+
+  /* Host app */
+  --app-bg: var(--muted);
+  --app-surface: var(--card);
+  --app-text: var(--foreground);
+  --app-text-muted: var(--muted-foreground);
+  --app-text-subtle: var(--secondary-foreground);
+  --app-avatar-bg: var(--secondary);
+  --app-chart: var(--brand-100);
+  --app-chart-current: var(--brand-400);
+  --app-radius-card: calc(var(--radius) + 4px);
+
+  /* Get care button */
+  --care-bg: var(--brand-500);
+  --care-text: var(--primary-foreground);
+  --care-muted: var(--brand-100);
+  --care-mark: var(--brand-100);
+  --care-icon-bg: color-mix(in oklch, var(--primary-foreground) 12%, transparent);
+  --care-radius: var(--radius);
+  --care-shadow: 0 4px 14px color-mix(in oklch, var(--foreground) 16%, transparent);
+  --care-shadow-hover: 0 8px 20px color-mix(in oklch, var(--foreground) 24%, transparent);
+
+  /* Chat takeover. The conversation itself is the Counsel embed. */
+  --chat-bg: var(--background);
+  --chat-border: var(--border);
+  --chat-text: var(--foreground);
+  --chat-icon: var(--muted-foreground);
+
+  /* Motion */
+  --chat-in-duration: 360ms;
+  --chat-out-duration: 280ms;
+}
