@@ -30,24 +30,6 @@ export const getRecentOrders = (): Order[] => [
   },
 ];
 
-export const getAllOrders = (): Order[] => [
-  ...getRecentOrders(),
-  {
-    id: "ORD-2023-004",
-    name: "Thyroid Function Test",
-    type: "lab",
-    date: "April 15, 2025",
-    status: "completed",
-  },
-  {
-    id: "ORD-2023-005",
-    name: "Blood Pressure Medication",
-    type: "medication",
-    date: "April 10, 2025",
-    status: "delivered",
-  },
-];
-
 // ================================================
 // User
 // ================================================
