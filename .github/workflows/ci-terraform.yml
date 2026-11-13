@@ -1,0 +1,63 @@
+name: Terraform CI
+
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+      - ".github/workflows/ci-terraform.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  TF_ROOT: terraform/environments/demo/gcp
+  TF_IN_AUTOMATION: "true"
+
+jobs:
+  format:
+    name: terraform-format
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Read Terraform version
+        id: tf-version
+        run: echo "version=$(cat terraform/.terraform-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: ${{ steps.tf-version.outputs.version }}
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+        working-directory: ./terraform
+
+  validate:
+    name: terraform-validate
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Read Terraform version
+        id: tf-version
+        run: echo "version=$(cat terraform/.terraform-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: ${{ steps.tf-version.outputs.version }}
+
+      - name: Terraform Init
+        run: terraform init -backend=false -input=false
+        working-directory: ${{ env.TF_ROOT }}
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ${{ env.TF_ROOT }}
