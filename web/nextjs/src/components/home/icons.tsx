@@ -1,7 +1,8 @@
-import { cn } from "@/lib/utils";
+import type { Brand } from "@/lib/brands";
+import { BRANDS } from "@/lib/brands";
 
 /** Vela crescent logo mark. Takes its color from `currentColor`. */
-export function VelaMark({ className }: { className?: string }) {
+function VelaMark({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
       <path
@@ -28,21 +29,18 @@ export function CareMark({ className }: { className?: string }) {
   );
 }
 
-/** Vela logo with wordmark. `compact` is the smaller size used in the chat header. */
-export function VelaBrand({ compact = false }: { compact?: boolean }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <VelaMark
-        className={cn("flex-none", compact ? "size-5" : "size-[22px]")}
-      />
-      <span
-        className={cn(
-          "font-semibold tracking-[.32em]",
-          compact ? "text-sm" : "text-[15px]"
-        )}
-      >
-        VELA
-      </span>
-    </div>
-  );
+/**
+ * The brand's logo for the chat header. Logos are assets rather than tokens, so a brand with
+ * its own logo gets a case here; the others show their name.
+ */
+export function BrandLogo({ brand }: { brand: Brand }) {
+  if (brand === "vela") {
+    return (
+      <div className="flex items-center gap-2.5">
+        <VelaMark className="size-5 flex-none" />
+        <span className="text-sm font-semibold tracking-[.32em]">VELA</span>
+      </div>
+    );
+  }
+  return <span className="text-base font-semibold">{BRANDS[brand].name}</span>;
 }

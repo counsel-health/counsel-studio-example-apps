@@ -1,7 +1,7 @@
-/* Theme: Vela. Tokens only, scoped by data-theme on the Vela app root.
+/* Theme: Vela. Tokens only, scoped by data-theme on the home page root.
    A new partner skin is a copy of this file with new values: see ./README.md. */
 [data-theme="vela"] {
-  /* Fonts. The --font-vela-* variables come from next/font in ../fonts.ts. */
+  /* Fonts. The --font-vela-* variables come from next/font in src/components/home/fonts.ts. */
   --font-display: var(--font-vela-newsreader), Georgia, serif;
   --font-body: var(--font-vela-inter), system-ui, sans-serif;
 

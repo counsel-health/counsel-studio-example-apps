@@ -1,8 +1,8 @@
 import type { Ref } from "react";
 import { ChevronRight } from "lucide-react";
-import { getBarHeights, RESTING_HEART_RATE } from "@/lib/vela";
+import { getBarHeights, RESTING_HEART_RATE } from "@/lib/brands";
 import { cn } from "@/lib/utils";
-import { CareMark, VelaBrand } from "./icons";
+import { CareMark } from "./icons";
 
 const TILES = [
   { title: "Sleep", value: "[0h 00m]", note: "Last night" },
@@ -10,26 +10,18 @@ const TILES = [
   { title: "Activity", value: "[0,000]", note: "Steps so far" },
 ];
 
-type VelaHomeProps = {
+type HomeContentProps = {
   getCareRef: Ref<HTMLButtonElement>;
   onGetCare: () => void;
 };
 
-/** Vela's home screen: greeting, the "Get care" entry point, resting heart rate and today's tiles. */
-export default function VelaHome({ getCareRef, onGetCare }: VelaHomeProps) {
+/** Home: greeting, the "Get care" entry point, resting heart rate and today's tiles. */
+export default function HomeContent({
+  getCareRef,
+  onGetCare,
+}: HomeContentProps) {
   return (
-    <main className="mx-auto flex w-full max-w-[1120px] flex-col gap-8 px-12 pt-8 pb-30 max-sm:px-5 max-sm:pt-6">
-      <div className="flex items-center justify-between gap-4">
-        <VelaBrand />
-        <button
-          type="button"
-          className="size-11 cursor-pointer rounded-full bg-(--app-avatar-bg) text-[15px] font-bold"
-          aria-label="Account: Nora R."
-        >
-          NR
-        </button>
-      </div>
-
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-8 px-12 pt-8 pb-30 max-sm:px-5 max-sm:pt-6">
       <div className="flex flex-wrap items-start justify-between gap-6">
         <header className="flex flex-col gap-1.5">
           <h1 className="font-(family-name:--font-display) text-[44px] leading-[1.1] font-normal tracking-[-0.01em]">
@@ -77,7 +69,7 @@ export default function VelaHome({ getCareRef, onGetCare }: VelaHomeProps) {
           </div>
         ))}
       </section>
-    </main>
+    </div>
   );
 }
 
