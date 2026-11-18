@@ -46,6 +46,14 @@ NextJS by default will server render all components. Its critical to prevent the
 
 To prevent the iFrame from being server rendered, check out the implementation of the [CounselApp](./src/components/counsel/CounselApp.tsx) component.
 
+## Brand Themes
+
+The dashboard home (`/dashboard`) is themable. Its "Get care" button slides in a full-page chat
+holding the Counsel embed. Colors, fonts, radii and motion all come from CSS variables in
+[src/styles/themes](./src/styles/themes/README.md), scoped by `data-theme`. The default is
+`studio`. Add `?theme=vela` or `?theme=example` to the URL to see another brand on the same page. A
+new brand is a new token file, with no component changes.
+
 ## Session Data Playground
 
 The Playground tab (`/dashboard/playground`) builds the session data body of
