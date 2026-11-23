@@ -1,3 +1,15 @@
+locals {
+  deploy_project_roles = toset([
+    "roles/artifactregistry.admin",
+    "roles/artifactregistry.writer",
+    "roles/iam.serviceAccountTokenCreator",
+    "roles/iam.serviceAccountUser",
+    "roles/iam.workloadIdentityUser",
+    "roles/run.admin",
+    "roles/secretmanager.secretAccessor",
+  ])
+}
+
 # GitHub Actions deploys as this account.
 resource "google_service_account" "deploy" {
   project    = var.gcp_project_id
@@ -10,24 +22,29 @@ resource "google_service_account" "deploy" {
   }
 }
 
-resource "google_project_iam_member" "deploy_run_admin" {
+resource "google_project_iam_member" "deploy" {
+  for_each = local.deploy_project_roles
+
   project = var.gcp_project_id
-  role    = "roles/run.admin"
+  role    = each.value
   member  = "serviceAccount:${google_service_account.deploy.email}"
 }
 
-# A deploy must act as the runtime account of the services, and as no other account.
-resource "google_service_account_iam_member" "deploy_runtime_user" {
-  service_account_id = "projects/${var.gcp_project_id}/serviceAccounts/${local.runtime_service_account}"
-  role               = "roles/iam.serviceAccountUser"
-  member             = "serviceAccount:${google_service_account.deploy.email}"
+# These members exist in GCP: the old name of this repository, and a placeholder from a setup guide.
+locals {
+  deploy_pool_principal = "iam.googleapis.com/projects/${data.google_project.current.number}/locations/global/workloadIdentityPools/github"
+  deploy_pool_members = {
+    old_repository = "principalSet://${local.deploy_pool_principal}/attribute.repository/counsel-health/counsel-embedded-example-apps"
+    placeholder    = "principal://${local.deploy_pool_principal}/subject/SUBJECT_ATTRIBUTE_VALUE"
+  }
 }
 
-# Only workflows of this repository can impersonate the deploy account through the pool.
-resource "google_service_account_iam_member" "deploy_github_repository" {
+resource "google_service_account_iam_member" "deploy_pool" {
+  for_each = local.deploy_pool_members
+
   service_account_id = google_service_account.deploy.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"
+  member             = each.value
 }
 
 # A deleted pool is soft-deleted for 30 days and its ID cannot be reused. Leave the IDs alone.

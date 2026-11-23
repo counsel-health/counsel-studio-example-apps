@@ -20,6 +20,11 @@ import {
 }
 
 import {
+  to = google_artifact_registry_repository_iam_member.deploy_writer
+  id = "${local.import_location}/repositories/embedded-demo roles/artifactregistry.writer serviceAccount:${local.import_deploy_account}"
+}
+
+import {
   for_each = var.services
 
   to = google_cloud_run_v2_service.service[each.key]
@@ -46,8 +51,17 @@ import {
 }
 
 import {
-  to = google_project_iam_member.deploy_run_admin
-  id = "${var.gcp_project_id} roles/run.admin serviceAccount:${local.import_deploy_account}"
+  for_each = local.deploy_project_roles
+
+  to = google_project_iam_member.deploy[each.value]
+  id = "${var.gcp_project_id} ${each.value} serviceAccount:${local.import_deploy_account}"
+}
+
+import {
+  for_each = local.deploy_pool_members
+
+  to = google_service_account_iam_member.deploy_pool[each.key]
+  id = "${local.import_project}/serviceAccounts/${local.import_deploy_account} roles/iam.workloadIdentityUser ${each.value}"
 }
 
 import {

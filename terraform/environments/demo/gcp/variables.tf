@@ -3,12 +3,6 @@ variable "gcp_project_id" {
   type        = string
 }
 
-variable "github_repository" {
-  description = "The GitHub repository, as owner/name, that can deploy through Workload Identity."
-  type        = string
-  default     = "counsel-health/counsel-studio-example-apps"
-}
-
 variable "gcp_region" {
   description = "GCP region where resources will be created"
   type        = string
