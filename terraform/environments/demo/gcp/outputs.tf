@@ -6,4 +6,5 @@ output "service_urls" {
 output "registry_url" {
   description = "Docker repository URL that CD pushes images to"
   value       = local.registry_url
+  sensitive   = true
 }
