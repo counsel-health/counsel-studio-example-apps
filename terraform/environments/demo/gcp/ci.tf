@@ -35,7 +35,7 @@ resource "google_project_iam_member" "deploy_run_public_access" {
 
 # A deploy must act as the runtime account of the services, and as no other account.
 resource "google_service_account_iam_member" "deploy_runtime_user" {
-  service_account_id = "projects/${var.gcp_project_id}/serviceAccounts/${local.runtime_service_account}"
+  service_account_id = google_service_account.runtime.name
   role               = "roles/iam.serviceAccountUser"
   member             = "serviceAccount:${google_service_account.deploy.email}"
 }

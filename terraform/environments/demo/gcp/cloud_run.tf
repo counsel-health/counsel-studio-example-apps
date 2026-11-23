@@ -9,7 +9,7 @@ resource "google_cloud_run_v2_service" "service" {
   invoker_iam_disabled = each.value.invoker_iam_disabled
 
   template {
-    service_account                  = local.runtime_service_account
+    service_account                  = google_service_account.runtime.email
     execution_environment            = "EXECUTION_ENVIRONMENT_GEN2"
     timeout                          = "${each.value.timeout_seconds}s"
     max_instance_request_concurrency = each.value.concurrency
@@ -70,7 +70,7 @@ resource "google_cloud_run_v2_service" "service" {
     ]
   }
 
-  depends_on = [google_project_service.api]
+  depends_on = [google_project_service.api, google_project_iam_member.runtime_secret_accessor]
 }
 
 resource "google_cloud_run_v2_service_iam_member" "public_invoker" {
