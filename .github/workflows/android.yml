@@ -22,9 +22,9 @@ jobs:
     outputs:
       relevant: ${{ steps.filter.outputs.relevant }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: dorny/paths-filter@v4.0.2
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           filters: |
@@ -40,18 +40,18 @@ jobs:
       run:
         working-directory: mobile/android/EmbeddedCounselDemo
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up JDK 17
         if: needs.changes.outputs.relevant == 'true'
-        uses: actions/setup-java@v5.7.0
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Set up Gradle
         if: needs.changes.outputs.relevant == 'true'
-        uses: gradle/actions/setup-gradle@v6.3.0
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
@@ -73,7 +73,7 @@ jobs:
 
       - name: Upload detekt report
         if: failure() && needs.changes.outputs.relevant == 'true'
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: detekt-report
           path: mobile/android/EmbeddedCounselDemo/app/build/reports/detekt/
@@ -82,7 +82,7 @@ jobs:
 
       - name: Upload debug APK
         if: success() && needs.changes.outputs.relevant == 'true'
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: app-debug
           path: mobile/android/EmbeddedCounselDemo/app/build/outputs/apk/debug/*.apk

@@ -38,39 +38,39 @@ jobs:
     name: Purge Caches
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Delete automation-testing node_modules sticky disk
         if: ${{ inputs.e2e_node_modules }}
-        uses: useblacksmith/stickydisk-delete@v1
+        uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6 # v1
         continue-on-error: true
         with:
           delete-key: ${{ runner.os }}-counsel-studio-e2e-bun-${{ hashFiles('automation-testing/bun.lock') }}
 
       - name: Delete Playwright browsers sticky disk
         if: ${{ inputs.e2e_playwright }}
-        uses: useblacksmith/stickydisk-delete@v1
+        uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6 # v1
         continue-on-error: true
         with:
           delete-key: ${{ runner.os }}-counsel-studio-e2e-playwright-${{ hashFiles('automation-testing/package.json', 'automation-testing/bun.lock') }}
 
       - name: Delete web/nextjs node_modules sticky disk
         if: ${{ inputs.web_node_modules }}
-        uses: useblacksmith/stickydisk-delete@v1
+        uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6 # v1
         continue-on-error: true
         with:
           delete-key: ${{ runner.os }}-counsel-studio-web-bun-${{ hashFiles('web/nextjs/bun.lock') }}
 
       - name: Delete Next.js build cache sticky disk
         if: ${{ inputs.web_next_build }}
-        uses: useblacksmith/stickydisk-delete@v1
+        uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6 # v1
         continue-on-error: true
         with:
           delete-key: ${{ runner.os }}-counsel-studio-web-next-${{ hashFiles('web/nextjs/bun.lock') }}
 
       - name: Delete server/nodejs node_modules sticky disk
         if: ${{ inputs.server_node_modules }}
-        uses: useblacksmith/stickydisk-delete@v1
+        uses: useblacksmith/stickydisk-delete@b41313d28b8647d72114c9ba3c96bb04061562b6 # v1
         continue-on-error: true
         with:
           delete-key: ${{ runner.os }}-counsel-studio-server-bun-${{ hashFiles('server/nodejs/bun.lock') }}
