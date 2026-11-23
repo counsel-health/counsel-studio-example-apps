@@ -10,9 +10,26 @@ resource "google_service_account" "deploy" {
   }
 }
 
-resource "google_project_iam_member" "deploy_run_admin" {
+resource "google_project_iam_member" "deploy_run_developer" {
   project = var.gcp_project_id
-  role    = "roles/run.admin"
+  role    = "roles/run.developer"
+  member  = "serviceAccount:${google_service_account.deploy.email}"
+}
+
+# The preview deploys make each new service public. The developer role does not permit that.
+resource "google_project_iam_custom_role" "deploy_run_public_access" {
+  project     = var.gcp_project_id
+  role_id     = "deployRunPublicAccess"
+  title       = "Deploy: Cloud Run public access"
+  description = "Lets the deploy account set the access policy of a Cloud Run service."
+  permissions = ["run.services.setIamPolicy"]
+
+  depends_on = [google_project_service.api]
+}
+
+resource "google_project_iam_member" "deploy_run_public_access" {
+  project = var.gcp_project_id
+  role    = google_project_iam_custom_role.deploy_run_public_access.id
   member  = "serviceAccount:${google_service_account.deploy.email}"
 }
 

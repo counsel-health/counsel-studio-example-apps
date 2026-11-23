@@ -19,11 +19,34 @@ resource "google_artifact_registry_repository" "embedded_demo" {
   }
 }
 
-# The preview cleanup deletes images, which the writer role does not permit.
-resource "google_artifact_registry_repository_iam_member" "deploy_repo_admin" {
+resource "google_artifact_registry_repository_iam_member" "deploy_writer" {
   project    = var.gcp_project_id
   location   = google_artifact_registry_repository.embedded_demo.location
   repository = google_artifact_registry_repository.embedded_demo.name
-  role       = "roles/artifactregistry.repoAdmin"
+  role       = "roles/artifactregistry.writer"
+  member     = "serviceAccount:${google_service_account.deploy.email}"
+}
+
+# The preview cleanup deletes images, which the writer role does not permit.
+resource "google_project_iam_custom_role" "deploy_image_cleanup" {
+  project     = var.gcp_project_id
+  role_id     = "deployImageCleanup"
+  title       = "Deploy: image cleanup"
+  description = "Lets the deploy account delete images, with their versions and tags, in a repository."
+  permissions = [
+    "artifactregistry.packages.delete",
+    "artifactregistry.repositories.deleteArtifacts",
+    "artifactregistry.tags.delete",
+    "artifactregistry.versions.delete",
+  ]
+
+  depends_on = [google_project_service.api]
+}
+
+resource "google_artifact_registry_repository_iam_member" "deploy_image_cleanup" {
+  project    = var.gcp_project_id
+  location   = google_artifact_registry_repository.embedded_demo.location
+  repository = google_artifact_registry_repository.embedded_demo.name
+  role       = google_project_iam_custom_role.deploy_image_cleanup.id
   member     = "serviceAccount:${google_service_account.deploy.email}"
 }
