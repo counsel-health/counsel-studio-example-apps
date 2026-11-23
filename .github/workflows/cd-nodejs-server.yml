@@ -35,18 +35,18 @@ jobs:
         working-directory: ./server/nodejs
     steps:
       - name: Checkout
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Instructions: https://github.com/google-github-actions/auth?tab=readme-ov-file#direct-wif
       - name: Google Auth
         id: auth
-        uses: "google-github-actions/auth@v3"
+        uses: "google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093" # v3.0.0
         with:
           credentials_json: "${{ secrets.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS }}"
           token_format: "access_token"
 
       - name: Login to Google Artifact Registry (GAR)
-        uses: docker/login-action@v4.6.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: ${{ env.REGION }}-docker.pkg.dev
           username: _json_key
@@ -59,7 +59,7 @@ jobs:
 
       - name: Deploy to Cloud Run
         id: deploy
-        uses: google-github-actions/deploy-cloudrun@v3
+        uses: google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d # v3.0.1
         with:
           wait: "true"
           service: ${{ env.SERVICE }}
