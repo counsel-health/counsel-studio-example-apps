@@ -19,10 +19,11 @@ resource "google_artifact_registry_repository" "embedded_demo" {
   }
 }
 
-resource "google_artifact_registry_repository_iam_member" "deploy_writer" {
+# The preview cleanup deletes images, which the writer role does not permit.
+resource "google_artifact_registry_repository_iam_member" "deploy_repo_admin" {
   project    = var.gcp_project_id
   location   = google_artifact_registry_repository.embedded_demo.location
   repository = google_artifact_registry_repository.embedded_demo.name
-  role       = "roles/artifactregistry.writer"
+  role       = "roles/artifactregistry.repoAdmin"
   member     = "serviceAccount:${google_service_account.deploy.email}"
 }
