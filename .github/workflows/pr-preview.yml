@@ -97,6 +97,7 @@ jobs:
             --concurrency=1000
             --timeout=300
             --execution-environment=gen2
+            --service-account=embedded-demo-runtime@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
             --set-secrets=ACCESS_CODE_CONFIGS=doppler-gsm-syncACCESS_CODE_CONFIGS:latest
             --set-secrets=JWT_SECRET=doppler-gsm-syncJWT_SECRET:latest
             --set-secrets=COUNSEL_WEBHOOK_SECRET=doppler-gsm-syncCOUNSEL_WEBHOOK_SECRET:latest
@@ -149,6 +150,7 @@ jobs:
             --concurrency=1000
             --timeout=300
             --execution-environment=gen2
+            --service-account=embedded-demo-runtime@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
             --set-secrets=ACCESS_CODE_CONFIGS=doppler-gsm-syncACCESS_CODE_CONFIGS:latest
             --set-secrets=JWT_SECRET=doppler-gsm-syncJWT_SECRET:latest
             --set-secrets=COUNSEL_WEBHOOK_SECRET=doppler-gsm-syncCOUNSEL_WEBHOOK_SECRET:latest
@@ -195,6 +197,7 @@ jobs:
             --concurrency=1000
             --timeout=300
             --execution-environment=gen2
+            --service-account=embedded-demo-runtime@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
             --cpu=2
             --memory=2Gi
             --set-secrets=IRON_SESSION_PASSWORD=doppler-gsm-syncIRON_SESSION_PASSWORD:latest
