@@ -1,0 +1,38 @@
+/* Theme: Vela. Tokens only, scoped by data-theme on the home page root.
+   A new partner skin is a copy of this file with new values: see ./README.md. */
+[data-theme="vela"] {
+  /* Fonts. The --font-vela-* variables come from next/font in src/components/home/fonts.ts. */
+  --font-display: var(--font-vela-newsreader), Georgia, serif;
+  --font-body: var(--font-vela-inter), system-ui, sans-serif;
+
+  /* Host app */
+  --app-bg: #e9edf1;
+  --app-surface: #ffffff;
+  --app-text: #14213d;
+  --app-text-muted: #4f5a70;
+  --app-text-subtle: #3e4a63;
+  --app-avatar-bg: #d5dce3;
+  --app-chart: #d3dfec;
+  --app-chart-current: #6f8fb8;
+  --app-radius-card: 20px;
+
+  /* Get care button */
+  --care-bg: #2c4470;
+  --care-text: #ffffff;
+  --care-muted: #c9d4e3;
+  --care-mark: #b9cbe0;
+  --care-icon-bg: rgba(255, 255, 255, 0.12);
+  --care-radius: 18px;
+  --care-shadow: 0 4px 14px rgba(20, 33, 61, 0.16);
+  --care-shadow-hover: 0 8px 20px rgba(20, 33, 61, 0.24);
+
+  /* Chat takeover. The conversation itself is the Counsel embed. */
+  --chat-bg: #f5f8fc;
+  --chat-border: #e3e9f0;
+  --chat-text: #14213d;
+  --chat-icon: #3e4a63;
+
+  /* Motion */
+  --chat-in-duration: 360ms;
+  --chat-out-duration: 280ms;
+}

@@ -11,7 +11,7 @@ test.describe("embedded flow", () => {
 
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(
-      page.getByRole("heading", { name: "Welcome back!" })
+      page.getByRole("heading", { name: "Good morning, Nora" })
     ).toBeVisible({
       timeout: 15_000,
     });
